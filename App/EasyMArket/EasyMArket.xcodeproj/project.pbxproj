@@ -15,6 +15,8 @@
 		A8EEA82026264AA900768354 /* EasyMArketUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA81F26264AA900768354 /* EasyMArketUITests.swift */; };
 		A8EEA8312626577700768354 /* PaymentMethodView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA8302626577700768354 /* PaymentMethodView.swift */; };
 		A8EEA836262659F700768354 /* cart.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = A8EEA835262659F700768354 /* cart.jpeg */; };
+		A8EEA83E2626656C00768354 /* CartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA83D2626656C00768354 /* CartView.swift */; };
+		A8EEA846262669CB00768354 /* Product.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA845262669CB00768354 /* Product.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +51,8 @@
 		A8EEA82126264AA900768354 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A8EEA8302626577700768354 /* PaymentMethodView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentMethodView.swift; sourceTree = "<group>"; };
 		A8EEA835262659F700768354 /* cart.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = cart.jpeg; path = ../../../../../../Downloads/cart.jpeg; sourceTree = "<group>"; };
+		A8EEA83D2626656C00768354 /* CartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartView.swift; sourceTree = "<group>"; };
+		A8EEA845262669CB00768354 /* Product.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Product.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,8 +103,10 @@
 		A8EEA80126264AA600768354 /* EasyMArket */ = {
 			isa = PBXGroup;
 			children = (
+				A8EEA845262669CB00768354 /* Product.swift */,
 				A8EEA80226264AA600768354 /* EasyMArketApp.swift */,
 				A8EEA80426264AA600768354 /* ContentView.swift */,
+				A8EEA83D2626656C00768354 /* CartView.swift */,
 				A8EEA8302626577700768354 /* PaymentMethodView.swift */,
 				A8EEA80626264AA900768354 /* Assets.xcassets */,
 				A8EEA80B26264AA900768354 /* Info.plist */,
@@ -268,6 +274,8 @@
 			files = (
 				A8EEA80526264AA600768354 /* ContentView.swift in Sources */,
 				A8EEA8312626577700768354 /* PaymentMethodView.swift in Sources */,
+				A8EEA846262669CB00768354 /* Product.swift in Sources */,
+				A8EEA83E2626656C00768354 /* CartView.swift in Sources */,
 				A8EEA80326264AA600768354 /* EasyMArketApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -14,7 +14,7 @@ struct ContentView: View {
     @State private var password = ""
     var body: some View {
         VStack {
-            Text("Bem vindo ao Easy Market")
+            Text("Easy Market")
                             .font(.largeTitle).foregroundColor(Color.white)
                             .padding([.top, .bottom], 40)
                             .shadow(radius: 10.0, x: 20, y: 10)
@@ -34,7 +34,7 @@ struct ContentView: View {
                                 .cornerRadius(20.0)
                                 .shadow(radius: 10.0, x: 20, y: 10)
                             
-                            SecureField("Password", text: self.$password)
+                            SecureField("Senha", text: self.$password)
                                 .padding()
                                 .background(Color.themeTextField)
                                 .cornerRadius(20.0)
@@ -42,7 +42,7 @@ struct ContentView: View {
                         }.padding([.leading, .trailing], 27.5)
                         
                         Button(action: {}) {
-                            Text("Sign In")
+                            Text("Entrar")
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding()
