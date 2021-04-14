@@ -1,0 +1,17 @@
+Interface HTTP com pontos de acesso:
+
+    GET:
+
+    http://servidor/item/RFIDCODE/  retorna um json com NomeItem, PreçoItem
+    http://servidor/compra/IDCompra  retorna um json com uma lista de (NomeItem, PreçoItem, Quantidade)
+
+    POST - to meio incerto ainda, mas o que tem que fazer: 
+
+    Adicionar comprador
+    Iniciar compra
+    Terminar compra pagando
+    Abortar compra
+    Adicionar item a compra
+    Remover Item da compra
+
+
