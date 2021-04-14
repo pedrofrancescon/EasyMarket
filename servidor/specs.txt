@@ -1,25 +1,33 @@
-Interface HTTP com pontos de acesso:
-
+API http+json desenvolvida em django rest framework usando sqlite.
 
 GET:
-
-    http://servidor/item/RFIDCODE/  retorna um json com NomeItem, PreçoItem
+    http://servidor/item/RFIDCODE/  
+     { Nome: "Leite 1L", Preco: "299", Peso: 1020 }
     http://servidor/compra/IDCompra  retorna um json com uma lista de (NomeItem, PreçoItem, Quantidade)
+     { [ {Nome: "Leite 1L", Preco: "299", Quantidade: 3 } ] }
+    http://servidor/carrinho/QRCode  - Pode retornar 404 (indica que o carrinho não esta selecionado)
+     { Jaqueta: 3 }
 
 POST:
     Adicionar comprador
-    http://servidor/cliente/ com nome,email,senha
+    http://servidor/cliente/ com nome,email,senha 
+     { Nome: "Jose da Silva", email: "josesilva@gmail.com", senha: "12345" }
 
     Iniciar compra
-    http://servidor/compra com qrcode_carrinho (e usuario com senha)
+    http://servidor/compra com qrcode_carrinho (e usuario com senha), e jaqueta.
+     { email: "josesilva@gmail.com", senha: "12345" }
 
 PUT:
     Modificar/Adicionar/Remover Item da compra
     http://servidor/compra/RFIDCode com quantidade
+     { email: "josesilva@gmail.com", senha: "12345", RFIDCode: 3243213, Quantidade: 3 }
+     { email: "josesilva@gmail.com", senha: "12345", RFIDCode: 3243213, Quantidade: 0 }
 
 DELETE:
     Abortar compra
     http://servidor/compra
+     { email: "josesilva@gmail.com", senha: "12345" }
 
     Terminar compra pagando
     http://servidor/compra com confirmação de pagamento
+     { email: "josesilva@gmail.com", senha: "12345", pagamento: 343329381 }
