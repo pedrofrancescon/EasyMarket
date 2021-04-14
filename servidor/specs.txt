@@ -6,7 +6,7 @@ GET:
     http://servidor/compra/IDCompra  retorna um json com uma lista de (NomeItem, PreçoItem, Quantidade)
      { [ {Nome: "Leite 1L", Preco: "299", Quantidade: 3 } ] }
     http://servidor/carrinho/QRCode  - Pode retornar 404 (indica que o carrinho não esta selecionado)
-     { Jaqueta: 3 }
+     { IDCompra: 719, Jaqueta: 3 }
 
 POST:
     Adicionar comprador
@@ -20,8 +20,8 @@ POST:
 PUT:
     Modificar/Adicionar/Remover Item da compra
     http://servidor/compra/RFIDCode com quantidade
-     { email: "josesilva@gmail.com", senha: "12345", RFIDCode: 3243213, Quantidade: 3 }
-     { email: "josesilva@gmail.com", senha: "12345", RFIDCode: 3243213, Quantidade: 0 }
+     { IDCompra: 719, RFIDCode: 3243213, Quantidade: 3 }
+     { IDCompra: 719, RFIDCode: 3243213, Quantidade: 0 }
 
 DELETE:
     Abortar compra
@@ -30,4 +30,8 @@ DELETE:
 
     Terminar compra pagando
     http://servidor/compra com confirmação de pagamento
-     { email: "josesilva@gmail.com", senha: "12345", pagamento: 343329381 }
+     { email: "josesilva@gmail.com", senha: "12345", pagamento: 918203817 }
+
+    Avisar que o carrinho saiu e a compra pode terminar
+    http://servidor/carrinho/QRCode
+     { }
