@@ -1,17 +1,25 @@
 Interface HTTP com pontos de acesso:
 
-    GET:
+
+GET:
 
     http://servidor/item/RFIDCODE/  retorna um json com NomeItem, PreçoItem
     http://servidor/compra/IDCompra  retorna um json com uma lista de (NomeItem, PreçoItem, Quantidade)
 
-    POST - to meio incerto ainda, mas o que tem que fazer: 
-
+POST:
     Adicionar comprador
+    http://servidor/cliente/ com nome,email,senha
+
     Iniciar compra
-    Terminar compra pagando
+    http://servidor/compra com qrcode_carrinho (e usuario com senha)
+
+PUT:
+    Modificar/Adicionar/Remover Item da compra
+    http://servidor/compra/RFIDCode com quantidade
+
+DELETE:
     Abortar compra
-    Adicionar item a compra
-    Remover Item da compra
+    http://servidor/compra
 
-
+    Terminar compra pagando
+    http://servidor/compra com confirmação de pagamento
