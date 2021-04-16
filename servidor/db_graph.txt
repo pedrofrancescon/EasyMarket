@@ -1,0 +1,31 @@
+Table Comprador {
+  Nome varchar
+  Email varchar PK
+  Senha varchar
+}
+
+Table Compra {
+  ID INTEGER PK
+  Comprador varchar
+  Carrinho INTEGER
+  CoresJaqueta INTEGER
+}
+
+Ref a1: Compra.Comprador > Comprador.Email
+
+Table ItemCompra {
+  Compra INTEGER PK
+  Item INTEGER PK
+  Quantidade INTEGER
+}
+
+ref a2: Item.RFIDCode - ItemCompra.Item
+ref a3: Compra.ID - ItemCompra.Compra
+
+Table Item {
+  RFIDCode INTEGER PK
+  Nome varchar
+  Peso INTEGER
+  Preco INTEGER
+}
+
