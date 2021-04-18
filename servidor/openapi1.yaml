@@ -8,6 +8,7 @@ components:
       name: RFIDCode
       in: path
       required: true
+      description: Item RFIDCode
       schema:
         type: integer
         example: 315748
@@ -15,6 +16,7 @@ components:
       name: QRCode
       in: path
       required: true
+      description: Cart QRCode
       schema:
         $ref: "#/components/schemas/qrcode"
   schemas:
@@ -195,6 +197,7 @@ paths:
                   $ref: "#/components/schemas/login"
                 payment:
                   type: integer
+                  description: Payment method. Optional (transaction not completed if absent)
                   example: 4748967312
       responses:
         "200":
