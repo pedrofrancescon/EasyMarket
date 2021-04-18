@@ -1,0 +1,254 @@
+openapi: 3.0.0
+info:
+  title: EasyMarket Server
+  version: 0.0.1
+components:
+  parameters:
+    rfidcode:
+      name: RFIDCode
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 315748
+    qrcode:
+      name: QRCode
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/qrcode"
+  schemas:
+    purchase:
+      type: integer
+      example: 719
+    vesttype:
+      type: string
+      example: "blue"
+      enum:
+        - blue
+    qrcode:
+      type: string
+      description: Cart QRCode
+      example: "5477"
+    login:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          maxLength: 100
+          example: "josesilva@gmail.com"
+        password:
+          type: string
+          minLength: 5
+          maxLength: 100
+          example: "senha"
+paths:
+  /cart/{QRCode}:
+    delete: 
+      summary: Cart ending purchase
+      parameters:
+        - $ref: "#/components/parameters/qrcode"
+      responses:
+        "200":
+          description: "OK"
+        "404":
+          description: "Cart not found in open purchases"
+          
+    get:
+      summary: maybe get current purchase data for a cart
+      parameters:
+        - $ref: "#/components/parameters/qrcode"
+      responses:
+        "404":
+          description: "Cart not in current purchase"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - purchase
+                  - VestType
+                properties:
+                  purchase:
+                    $ref: "#/components/schemas/purchase"
+                  VestType:
+                    $ref: "#/components/schemas/vesttype"
+
+  /item/{RFIDCode}:
+    get:
+      summary: get item data
+      parameters:
+        - $ref: "#/components/parameters/rfidcode"
+      responses:
+        "404":
+          description: "Item not found"
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - name
+                  - price
+                  - weight
+                properties:
+                  name:
+                    type: string
+                  price:
+                    type: integer
+                    minimum: 0
+                  weight:
+                    type: integer
+                    minimum: 0
+
+            
+
+  /purchase:
+    post:
+      summary: Start a purchase
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+                - QRCode
+                - VestType
+              properties:
+                login:
+                  $ref: "#/components/schemas/login"
+                QRCode:
+                  $ref: "#/components/schemas/qrcode"
+                VestType:
+                  $ref: "#/components/schemas/vesttype"
+      responses:
+        "200":
+          description: "OK"
+        "400":
+          description: "Missing or invalid parameters"
+        "403":
+          description: "Login failure"
+        "409":
+          description: "Purchase already in progress"
+    get:
+      summary: Get current purchase items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+              properties:
+                login:
+                  $ref: "#/components/schemas/login"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - name
+                    - price
+                    - amount
+                  properties:
+                    name:
+                      type: string
+                      example: "Leite Vaqueiro 1L"
+                    price:
+                      type: integer
+                      minimum: 0
+                      example: 299
+                    amount:
+                      type: integer
+                      minimum: 0
+                      example: 3
+
+        "403":
+          description: "Login failure"
+        "404":
+          description: "No purchase in progress"       
+          
+          
+    delete:
+      summary: End a purchase by the client
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+              properties:
+                login:
+                  $ref: "#/components/schemas/login"
+                payment:
+                  type: integer
+                  example: 4748967312
+      responses:
+        "200":
+          description: "OK"
+        "402":
+          description: "Payment failure"
+        "403":
+          description: "Login failure"
+        "404":
+          description: "No purchase in progress"          
+
+
+          
+  /purchase/{purchaseID}/{RFIDCode}:
+    put:
+      summary: alter amount of item in purchase
+      parameters:
+        - $ref: "#/components/parameters/rfidcode"
+        - name: purchaseID
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/purchase"
+            
+      responses:
+        "200":
+            description: "OK"
+        "404":
+            description: "Purchase or item not found"
+            
+  /client:
+    post:
+      summary: Add a client
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - login
+              properties:
+                login:
+                  $ref: "#/components/schemas/login"
+                name:
+                  type: string
+                  maxLength: 100
+                  example: "Jose da Silva"
+      responses:
+        "200":
+          description: "OK"
+        "400":
+          description: "Missing or invalid parameters"
+        "409":
+          description: "Email already registered"
+
+
