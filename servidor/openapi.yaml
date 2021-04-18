@@ -185,6 +185,7 @@ paths:
           
     delete:
       summary: End a purchase by the client
+      description: Tries to end a purchase by either cancelling the purchase (does not include payment) or completing it(includes payment)
       requestBody:
         content:
           application/json:
