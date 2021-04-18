@@ -10,15 +10,16 @@ components:
       required:
         - email
         - password
-      email:
-        type: string
-        maxLength: 100
-        example: "josesilva@gmail.com"
-      password:
-        type: string
-        minLength: 5
-        maxLength: 100
-        example: "senha"
+      properties:
+        email:
+          type: string
+          maxLength: 100
+          example: "josesilva@gmail.com"
+        password:
+          type: string
+          minLength: 5
+          maxLength: 100
+          example: "senha"
 paths: 
   /client:
     post:
