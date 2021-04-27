@@ -3,6 +3,7 @@
 import connexion
 
 from openapi_server import encoder
+from .database import db_session
 
 
 def main():
@@ -13,6 +14,10 @@ def main():
                 pythonic_params=True)
 
     app.run(port=8080)
+
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db_session.remove()    
 
 
 if __name__ == '__main__':

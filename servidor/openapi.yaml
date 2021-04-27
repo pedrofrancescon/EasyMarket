@@ -250,7 +250,12 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/purchase"
-            
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+              title: amount
       responses:
         "200":
             description: "OK"
