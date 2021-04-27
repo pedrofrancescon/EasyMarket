@@ -5,10 +5,8 @@ from openapi_server.models.cart_status import CartStatus  # noqa: E501
 from openapi_server.models.item_data import ItemData  # noqa: E501
 from openapi_server import util
 
-import openapi_server.dbmodels as dbm
 
-
-def cart_alter_item(rfid_code, purchase_id):  # noqa: E501
+def cart_alter_item(rfid_code, purchase_id, body):  # noqa: E501
     """alter amount of item in purchase
 
      # noqa: E501
@@ -17,6 +15,8 @@ def cart_alter_item(rfid_code, purchase_id):  # noqa: E501
     :type rfid_code: int
     :param purchase_id: 
     :type purchase_id: int
+    :param body: 
+    :type body: int
 
     :rtype: None
     """
@@ -33,10 +33,7 @@ def cart_check_on_purchase(qr_code):  # noqa: E501
 
     :rtype: CartStatus
     """
-    purchase = dbm.Purchase.query.filter(dbm.Purchase.cart == qr_code).first()
-    if not purchase:
-        return "not in purchase", 404
-    return CartStatus(purchase=purchase.id, vest_type=purchase.vest_type)
+    return 'do some magic!'
 
 
 def cart_end_purchase(qr_code):  # noqa: E501
@@ -49,12 +46,7 @@ def cart_end_purchase(qr_code):  # noqa: E501
 
     :rtype: None
     """
-    purchase = dbm.Purchase.query.filter(dbm.Purchase.cart == qr_code).first()
-    if not purchase:
-        return "not in purchase", 404
-    purchase.cart = None
-    purchase.commit()
-    return "ok"
+    return 'do some magic!'
 
 
 def get_item_data(rfid_code):  # noqa: E501
@@ -67,7 +59,4 @@ def get_item_data(rfid_code):  # noqa: E501
 
     :rtype: ItemData
     """
-    item = dbm.Item.query.filter(dbm.Item.rfid_code == rfid_code).first()
-    if not item:
-        return "Item not found", 404
-    return ItemData(name=item.name, price=item.price, weight=item.weight)
+    return 'do some magic!'
