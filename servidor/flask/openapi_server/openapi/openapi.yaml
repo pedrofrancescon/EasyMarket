@@ -1,0 +1,472 @@
+openapi: 3.0.0
+info:
+  title: EasyMarket Server
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /cart/{qr_code}:
+    delete:
+      operationId: cart_end_purchase
+      parameters:
+      - description: Cart qr_code
+        explode: false
+        in: path
+        name: qr_code
+        required: true
+        schema:
+          $ref: '#/components/schemas/qr_code'
+        style: simple
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Cart not found in open purchases
+      summary: Ending purchase
+      tags:
+      - cart
+      x-openapi-router-controller: openapi_server.controllers.cart_controller
+    get:
+      operationId: cart_check_on_purchase
+      parameters:
+      - description: Cart qr_code
+        explode: false
+        in: path
+        name: qr_code
+        required: true
+        schema:
+          $ref: '#/components/schemas/qr_code'
+        style: simple
+      responses:
+        "404":
+          description: Cart not in current purchase
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartStatus'
+          description: OK
+      summary: maybe get current purchase data for a cart
+      tags:
+      - cart
+      x-openapi-router-controller: openapi_server.controllers.cart_controller
+  /client:
+    post:
+      operationId: new_client
+      requestBody:
+        $ref: '#/components/requestBodies/NewLoginReq'
+        content:
+          application/json:
+            schema:
+              example:
+                name: Jose da Silva
+                login:
+                  password: senha
+                  email: josesilva@gmail.com
+              properties:
+                login:
+                  $ref: '#/components/schemas/login'
+                name:
+                  example: Jose da Silva
+                  maxLength: 100
+                  type: string
+              required:
+              - login
+              - name
+              title: NewLoginReq
+              type: object
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Missing or invalid parameters
+        "409":
+          description: Email already registered
+      summary: Add a client
+      tags:
+      - app
+      x-openapi-router-controller: openapi_server.controllers.app_controller
+  /item/{rfid_code}:
+    get:
+      operationId: get_item_data
+      parameters:
+      - description: Item rfid_code
+        explode: false
+        in: path
+        name: rfid_code
+        required: true
+        schema:
+          example: 315748
+          type: integer
+        style: simple
+      responses:
+        "404":
+          description: Item not found
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemData'
+          description: OK
+      summary: get item data
+      tags:
+      - app
+      x-openapi-router-controller: openapi_server.controllers.app_controller
+  /purchase:
+    delete:
+      description: Tries to end a purchase by either cancelling the purchase (does
+        not include payment) or completing it(includes payment)
+      operationId: app_end_purchase
+      requestBody:
+        $ref: '#/components/requestBodies/PaymentDataReq'
+        content:
+          application/json:
+            schema:
+              example:
+                payment: 4748967312
+                login:
+                  password: senha
+                  email: josesilva@gmail.com
+              properties:
+                login:
+                  $ref: '#/components/schemas/login'
+                payment:
+                  description: Payment method. Optional (transaction not completed
+                    if absent)
+                  example: 4748967312
+                  type: integer
+              required:
+              - login
+              title: PaymentDataReq
+              type: object
+      responses:
+        "200":
+          description: OK
+        "402":
+          description: Payment failure
+        "403":
+          description: Login failure
+        "404":
+          description: No purchase in progress
+      summary: End a purchase by the client
+      tags:
+      - app
+      x-openapi-router-controller: openapi_server.controllers.app_controller
+    get:
+      operationId: get_current_purchase
+      requestBody:
+        $ref: '#/components/requestBodies/LoginReq'
+        content:
+          application/json:
+            schema:
+              example:
+                login:
+                  password: senha
+                  email: josesilva@gmail.com
+              properties:
+                login:
+                  $ref: '#/components/schemas/login'
+              required:
+              - login
+              title: LoginReq
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/PurchaseItem'
+                title: PurchaseListRes
+                type: array
+          description: OK
+        "403":
+          description: Login failure
+        "404":
+          description: No purchase in progress
+      summary: Get current purchase items
+      tags:
+      - app
+      x-openapi-router-controller: openapi_server.controllers.app_controller
+    post:
+      operationId: start_purchase
+      requestBody:
+        $ref: '#/components/requestBodies/PurchaseStartReq'
+        content:
+          application/json:
+            schema:
+              example:
+                VestType: blue
+                qr_code: "5477"
+                login:
+                  password: senha
+                  email: josesilva@gmail.com
+              properties:
+                login:
+                  $ref: '#/components/schemas/login'
+                qr_code:
+                  description: Cart qr_code
+                  example: "5477"
+                  type: string
+                VestType:
+                  $ref: '#/components/schemas/vesttype'
+              required:
+              - VestType
+              - login
+              - qr_code
+              title: PurchaseStartReq
+              type: object
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Missing or invalid parameters
+        "403":
+          description: Login failure
+        "409":
+          description: Purchase already in progress
+      summary: Start a purchase
+      tags:
+      - app
+      x-openapi-router-controller: openapi_server.controllers.app_controller
+  /purchase/{purchase_id}/{rfid_code}:
+    put:
+      operationId: cart_alter_item
+      parameters:
+      - description: Item rfid_code
+        explode: false
+        in: path
+        name: rfid_code
+        required: true
+        schema:
+          example: 315748
+          type: integer
+        style: simple
+      - explode: false
+        in: path
+        name: purchase_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/purchase'
+        style: simple
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Purchase or item not found
+      summary: alter amount of item in purchase
+      tags:
+      - cart
+      x-openapi-router-controller: openapi_server.controllers.cart_controller
+components:
+  parameters:
+    rfid_code:
+      description: Item rfid_code
+      explode: false
+      in: path
+      name: rfid_code
+      required: true
+      schema:
+        example: 315748
+        type: integer
+      style: simple
+    qr_code:
+      description: Cart qr_code
+      explode: false
+      in: path
+      name: qr_code
+      required: true
+      schema:
+        $ref: '#/components/schemas/qr_code'
+      style: simple
+  requestBodies:
+    NewLoginReq:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NewLoginReq'
+    PaymentDataReq:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PaymentDataReq'
+    LoginReq:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginReq'
+    PurchaseStartReq:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PurchaseStartReq'
+  schemas:
+    purchase:
+      example: 719
+      title: purchase
+      type: integer
+    vesttype:
+      enum:
+      - blue
+      example: blue
+      title: vesttype
+      type: string
+    qr_code:
+      description: Cart qr_code
+      example: "5477"
+      type: string
+    login:
+      example:
+        password: senha
+        email: josesilva@gmail.com
+      properties:
+        email:
+          example: josesilva@gmail.com
+          maxLength: 100
+          title: email
+          type: string
+        password:
+          example: senha
+          maxLength: 100
+          minLength: 5
+          title: password
+          type: string
+      required:
+      - email
+      - password
+      title: login
+      type: object
+    CartStatus:
+      example:
+        purchase: 719
+        VestType: blue
+      properties:
+        purchase:
+          example: 719
+          title: purchase
+          type: integer
+        VestType:
+          $ref: '#/components/schemas/vesttype'
+      required:
+      - VestType
+      - purchase
+      title: CartStatus
+      type: object
+    ItemData:
+      example:
+        price: 0
+        name: name
+        weight: 0
+      properties:
+        name:
+          title: name
+          type: string
+        price:
+          minimum: 0
+          title: price
+          type: integer
+        weight:
+          minimum: 0
+          title: weight
+          type: integer
+      required:
+      - name
+      - price
+      - weight
+      title: ItemData
+      type: object
+    LoginReq:
+      example:
+        login:
+          password: senha
+          email: josesilva@gmail.com
+      properties:
+        login:
+          $ref: '#/components/schemas/login'
+      required:
+      - login
+      title: LoginReq
+      type: object
+    PurchaseItem:
+      example:
+        amount: 3
+        price: 299
+        name: Leite Vaqueiro 1L
+      properties:
+        name:
+          example: Leite Vaqueiro 1L
+          title: name
+          type: string
+        price:
+          example: 299
+          minimum: 0
+          title: price
+          type: integer
+        amount:
+          example: 3
+          minimum: 0
+          title: amount
+          type: integer
+      required:
+      - amount
+      - name
+      - price
+      title: PurchaseItem
+      type: object
+    PurchaseStartReq:
+      example:
+        VestType: blue
+        qr_code: "5477"
+        login:
+          password: senha
+          email: josesilva@gmail.com
+      properties:
+        login:
+          $ref: '#/components/schemas/login'
+        qr_code:
+          description: Cart qr_code
+          example: "5477"
+          type: string
+        VestType:
+          $ref: '#/components/schemas/vesttype'
+      required:
+      - VestType
+      - login
+      - qr_code
+      title: PurchaseStartReq
+      type: object
+    PaymentDataReq:
+      example:
+        payment: 4748967312
+        login:
+          password: senha
+          email: josesilva@gmail.com
+      properties:
+        login:
+          $ref: '#/components/schemas/login'
+        payment:
+          description: Payment method. Optional (transaction not completed if absent)
+          example: 4748967312
+          type: integer
+      required:
+      - login
+      title: PaymentDataReq
+      type: object
+    NewLoginReq:
+      example:
+        name: Jose da Silva
+        login:
+          password: senha
+          email: josesilva@gmail.com
+      properties:
+        login:
+          $ref: '#/components/schemas/login'
+        name:
+          example: Jose da Silva
+          maxLength: 100
+          type: string
+      required:
+      - login
+      - name
+      title: NewLoginReq
+      type: object
