@@ -4,21 +4,21 @@ info:
   version: 0.0.1
 components:
   parameters:
-    rfidcode:
-      name: RFIDCode
+    rfid_code:
+      name: rfid_code
       in: path
       required: true
-      description: Item RFIDCode
+      description: Item rfid_code
       schema:
         type: integer
         example: 315748
-    qrcode:
-      name: QRCode
+    qr_code:
+      name: qr_code
       in: path
       required: true
-      description: Cart QRCode
+      description: Cart qr_code
       schema:
-        $ref: "#/components/schemas/qrcode"
+        $ref: "#/components/schemas/qr_code"
   schemas:
     purchase:
       type: integer
@@ -28,9 +28,9 @@ components:
       example: "blue"
       enum:
         - blue
-    qrcode:
+    qr_code:
       type: string
-      description: Cart QRCode
+      description: Cart qr_code
       example: "5477"
     login:
       type: object
@@ -48,11 +48,14 @@ components:
           maxLength: 100
           example: "senha"
 paths:
-  /cart/{QRCode}:
+  /cart/{qr_code}:
     delete: 
-      summary: Cart ending purchase
+      summary: Ending purchase
+      operationId: CartEndPurchase
+      tags:
+        - cart
       parameters:
-        - $ref: "#/components/parameters/qrcode"
+        - $ref: "#/components/parameters/qr_code"
       responses:
         "200":
           description: "OK"
@@ -61,8 +64,11 @@ paths:
           
     get:
       summary: maybe get current purchase data for a cart
+      operationId: CartCheckOnPurchase
+      tags:
+        - cart
       parameters:
-        - $ref: "#/components/parameters/qrcode"
+        - $ref: "#/components/parameters/qr_code"
       responses:
         "404":
           description: "Cart not in current purchase"
@@ -72,6 +78,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: CartStatus
                 required:
                   - purchase
                   - VestType
@@ -81,11 +88,14 @@ paths:
                   VestType:
                     $ref: "#/components/schemas/vesttype"
 
-  /item/{RFIDCode}:
+  /item/{rfid_code}:
     get:
       summary: get item data
+      operationId: GetItemData
+      tags:
+        - cart
       parameters:
-        - $ref: "#/components/parameters/rfidcode"
+        - $ref: "#/components/parameters/rfid_code"
       responses:
         "404":
           description: "Item not found"
@@ -95,6 +105,7 @@ paths:
             application/json:
               schema:
                 type: object
+                title: ItemData
                 required:
                   - name
                   - price
@@ -114,20 +125,24 @@ paths:
   /purchase:
     post:
       summary: Start a purchase
+      operationId: StartPurchase
+      tags:
+        - app
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: PurchaseStartReq
               required:
                 - login
-                - QRCode
+                - qr_code
                 - VestType
               properties:
                 login:
                   $ref: "#/components/schemas/login"
-                QRCode:
-                  $ref: "#/components/schemas/qrcode"
+                qr_code:
+                  $ref: "#/components/schemas/qr_code"
                 VestType:
                   $ref: "#/components/schemas/vesttype"
       responses:
@@ -141,11 +156,15 @@ paths:
           description: "Purchase already in progress"
     get:
       summary: Get current purchase items
+      operationId: GetCurrentPurchase
+      tags:
+        - app
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: LoginReq
               required:
                 - login
               properties:
@@ -158,8 +177,10 @@ paths:
             application/json:
               schema:
                 type: array
+                title: PurchaseListRes
                 items:
                   type: object
+                  title: PurchaseItem
                   required:
                     - name
                     - price
@@ -185,12 +206,16 @@ paths:
           
     delete:
       summary: End a purchase by the client
+      operationId: AppEndPurchase
+      tags:
+        - app
       description: Tries to end a purchase by either cancelling the purchase (does not include payment) or completing it(includes payment)
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: PaymentDataReq
               required:
                 - login
               properties:
@@ -212,12 +237,15 @@ paths:
 
 
           
-  /purchase/{purchaseID}/{RFIDCode}:
+  /purchase/{purchase_id}/{rfid_code}:
     put:
       summary: alter amount of item in purchase
+      operationId: CartAlterItem
+      tags:
+        - cart
       parameters:
-        - $ref: "#/components/parameters/rfidcode"
-        - name: purchaseID
+        - $ref: "#/components/parameters/rfid_code"
+        - name: purchase_id
           in: path
           required: true
           schema:
@@ -232,11 +260,15 @@ paths:
   /client:
     post:
       summary: Add a client
+      operationId: NewClient
+      tags:
+        - app
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              title: NewLoginReq
               required:
                 - name
                 - login
