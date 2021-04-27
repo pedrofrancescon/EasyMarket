@@ -2,6 +2,7 @@ import connexion
 import six
 
 from openapi_server.models.cart_status import CartStatus  # noqa: E501
+from openapi_server.models.item_data import ItemData  # noqa: E501
 from openapi_server import util
 
 
@@ -42,5 +43,18 @@ def cart_end_purchase(qr_code):  # noqa: E501
     :type qr_code: str
 
     :rtype: None
+    """
+    return 'do some magic!'
+
+
+def get_item_data(rfid_code):  # noqa: E501
+    """get item data
+
+     # noqa: E501
+
+    :param rfid_code: Item rfid_code
+    :type rfid_code: int
+
+    :rtype: ItemData
     """
     return 'do some magic!'

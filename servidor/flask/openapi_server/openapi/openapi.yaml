@@ -110,8 +110,8 @@ paths:
           description: OK
       summary: get item data
       tags:
-      - app
-      x-openapi-router-controller: openapi_server.controllers.app_controller
+      - cart
+      x-openapi-router-controller: openapi_server.controllers.cart_controller
   /purchase:
     delete:
       description: Tries to end a purchase by either cancelling the purchase (does

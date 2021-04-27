@@ -93,7 +93,7 @@ paths:
       summary: get item data
       operationId: GetItemData
       tags:
-        - app
+        - cart
       parameters:
         - $ref: "#/components/parameters/rfid_code"
       responses:
