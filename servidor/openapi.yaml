@@ -251,6 +251,7 @@ paths:
           schema:
             $ref: "#/components/schemas/purchase"
       requestBody:
+        required: true
         content:
           application/json:
             schema:

@@ -7,8 +7,7 @@ from openapi_server import util
 
 import openapi_server.dbmodels as dbm
 
-
-def cart_alter_item(rfid_code, purchase_id):  # noqa: E501
+def cart_alter_item(rfid_code, purchase_id, body):  # noqa: E501
     """alter amount of item in purchase
 
      # noqa: E501
@@ -17,6 +16,8 @@ def cart_alter_item(rfid_code, purchase_id):  # noqa: E501
     :type rfid_code: int
     :param purchase_id: 
     :type purchase_id: int
+    :param body: 
+    :type body: int
 
     :rtype: None
     """
