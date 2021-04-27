@@ -249,13 +249,6 @@ paths:
         schema:
           $ref: '#/components/schemas/purchase'
         style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: amount
-              type: integer
-        required: true
       responses:
         "200":
           description: OK
