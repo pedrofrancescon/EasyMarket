@@ -7,8 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A81AF5092635F2DC00709CA6 /* LoginViewControler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A81AF5082635F2DC00709CA6 /* LoginViewControler.swift */; };
+		A81AF5112636555000709CA6 /* ApiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A81AF5102636555000709CA6 /* ApiService.swift */; };
+		A81AF51C2636623400709CA6 /* UserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A81AF51B2636623400709CA6 /* UserView.swift */; };
+		A85C472F263799340000D1B1 /* QRCodeReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A85C472E263799340000D1B1 /* QRCodeReaderView.swift */; };
 		A8EEA80326264AA600768354 /* EasyMArketApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA80226264AA600768354 /* EasyMArketApp.swift */; };
-		A8EEA80526264AA600768354 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA80426264AA600768354 /* ContentView.swift */; };
+		A8EEA80526264AA600768354 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA80426264AA600768354 /* LoginView.swift */; };
 		A8EEA80726264AA900768354 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A8EEA80626264AA900768354 /* Assets.xcassets */; };
 		A8EEA80A26264AA900768354 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A8EEA80926264AA900768354 /* Preview Assets.xcassets */; };
 		A8EEA81526264AA900768354 /* EasyMArketTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA81426264AA900768354 /* EasyMArketTests.swift */; };
@@ -16,8 +20,9 @@
 		A8EEA8312626577700768354 /* PaymentMethodView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA8302626577700768354 /* PaymentMethodView.swift */; };
 		A8EEA836262659F700768354 /* cart.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = A8EEA835262659F700768354 /* cart.jpeg */; };
 		A8EEA83E2626656C00768354 /* CartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA83D2626656C00768354 /* CartView.swift */; };
-		A8EEA846262669CB00768354 /* Product.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA845262669CB00768354 /* Product.swift */; };
+		A8EEA846262669CB00768354 /* ProductModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA845262669CB00768354 /* ProductModel.swift */; };
 		A8EEA8512627261800768354 /* CartControlerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA8502627261800768354 /* CartControlerView.swift */; };
+		A8EEA85C262748E600768354 /* CheckoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8EEA85B262748E600768354 /* CheckoutView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,9 +43,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A81AF5082635F2DC00709CA6 /* LoginViewControler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewControler.swift; sourceTree = "<group>"; };
+		A81AF5102636555000709CA6 /* ApiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiService.swift; sourceTree = "<group>"; };
+		A81AF51B2636623400709CA6 /* UserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserView.swift; sourceTree = "<group>"; };
+		A85C472E263799340000D1B1 /* QRCodeReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeReaderView.swift; sourceTree = "<group>"; };
 		A8EEA7FF26264AA600768354 /* EasyMArket.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EasyMArket.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8EEA80226264AA600768354 /* EasyMArketApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EasyMArketApp.swift; sourceTree = "<group>"; };
-		A8EEA80426264AA600768354 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A8EEA80426264AA600768354 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		A8EEA80626264AA900768354 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A8EEA80926264AA900768354 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A8EEA80B26264AA900768354 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -53,8 +62,9 @@
 		A8EEA8302626577700768354 /* PaymentMethodView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentMethodView.swift; sourceTree = "<group>"; };
 		A8EEA835262659F700768354 /* cart.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = cart.jpeg; path = ../../../../../../Downloads/cart.jpeg; sourceTree = "<group>"; };
 		A8EEA83D2626656C00768354 /* CartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartView.swift; sourceTree = "<group>"; };
-		A8EEA845262669CB00768354 /* Product.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Product.swift; sourceTree = "<group>"; };
+		A8EEA845262669CB00768354 /* ProductModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductModel.swift; sourceTree = "<group>"; };
 		A8EEA8502627261800768354 /* CartControlerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartControlerView.swift; sourceTree = "<group>"; };
+		A8EEA85B262748E600768354 /* CheckoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckoutView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,15 +115,20 @@
 		A8EEA80126264AA600768354 /* EasyMArket */ = {
 			isa = PBXGroup;
 			children = (
-				A8EEA845262669CB00768354 /* Product.swift */,
+				A81AF5102636555000709CA6 /* ApiService.swift */,
+				A8EEA845262669CB00768354 /* ProductModel.swift */,
 				A8EEA80226264AA600768354 /* EasyMArketApp.swift */,
 				A8EEA8502627261800768354 /* CartControlerView.swift */,
-				A8EEA80426264AA600768354 /* ContentView.swift */,
+				A8EEA80426264AA600768354 /* LoginView.swift */,
+				A81AF5082635F2DC00709CA6 /* LoginViewControler.swift */,
 				A8EEA83D2626656C00768354 /* CartView.swift */,
+				A8EEA85B262748E600768354 /* CheckoutView.swift */,
 				A8EEA8302626577700768354 /* PaymentMethodView.swift */,
 				A8EEA80626264AA900768354 /* Assets.xcassets */,
 				A8EEA80B26264AA900768354 /* Info.plist */,
 				A8EEA80826264AA900768354 /* Preview Content */,
+				A81AF51B2636623400709CA6 /* UserView.swift */,
+				A85C472E263799340000D1B1 /* QRCodeReaderView.swift */,
 			);
 			path = EasyMArket;
 			sourceTree = "<group>";
@@ -275,10 +290,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A8EEA80526264AA600768354 /* ContentView.swift in Sources */,
+				A8EEA80526264AA600768354 /* LoginView.swift in Sources */,
+				A85C472F263799340000D1B1 /* QRCodeReaderView.swift in Sources */,
 				A8EEA8312626577700768354 /* PaymentMethodView.swift in Sources */,
 				A8EEA8512627261800768354 /* CartControlerView.swift in Sources */,
-				A8EEA846262669CB00768354 /* Product.swift in Sources */,
+				A81AF5092635F2DC00709CA6 /* LoginViewControler.swift in Sources */,
+				A8EEA85C262748E600768354 /* CheckoutView.swift in Sources */,
+				A81AF5112636555000709CA6 /* ApiService.swift in Sources */,
+				A8EEA846262669CB00768354 /* ProductModel.swift in Sources */,
+				A81AF51C2636623400709CA6 /* UserView.swift in Sources */,
 				A8EEA83E2626656C00768354 /* CartView.swift in Sources */,
 				A8EEA80326264AA600768354 /* EasyMArketApp.swift in Sources */,
 			);
