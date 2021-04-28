@@ -1,0 +1,8 @@
+node-red-dashboard
+node-red-contrib-rc522
+node-red-contrib-hx711
+node-red-node-pi-gpio
+node-red-node-pisrf
+node-red-node-ui-list
+https://github.com/namgk/node-red-contrib-pythonshell (needs git head for py3 support)
+
