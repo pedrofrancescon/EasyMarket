@@ -8,6 +8,7 @@ from openapi_server import util
 import openapi_server.dbmodels as dbm
 from openapi_server.database import db_session as db
 
+
 def cart_alter_item(rfid_code, purchase_id, body):  # noqa: E501
     """alter amount of item in purchase
 
@@ -22,7 +23,7 @@ def cart_alter_item(rfid_code, purchase_id, body):  # noqa: E501
 
     :rtype: None
     """
-    purchase = dbm.Purchase.query.filter(dbm.Purchase.id == purchase_id).first()
+    purchase = dbm.Purchase.query.filter(dbm.Purchase.id == purchase_id).one_or_none()
     if not purchase:
         return "purchase not found", 404
     itempurchase = dbm.Purchase.query.join(dbm.ItemPurchase).filter(dbm.Purchase.id == purchase_id).filter(dbm.ItemPurchase.item_rfid_code == rfid_code).first()
@@ -46,7 +47,7 @@ def cart_check_on_purchase(qr_code):  # noqa: E501
 
     :rtype: CartStatus
     """
-    purchase = dbm.Purchase.query.filter(dbm.Purchase.cart == qr_code).first()
+    purchase = dbm.Purchase.query.filter(dbm.Purchase.cart == qr_code).one_or_none()
     if not purchase:
         return "not in purchase", 404
     return CartStatus(purchase=purchase.id, vest_type=purchase.vest_type)
@@ -62,7 +63,7 @@ def cart_end_purchase(qr_code):  # noqa: E501
 
     :rtype: None
     """
-    purchase = dbm.Purchase.query.filter(dbm.Purchase.cart == qr_code).first()
+    purchase = dbm.Purchase.query.filter(dbm.Purchase.cart == qr_code).one_or_none()
     if not purchase:
         return "not in purchase", 404
     purchase.cart = None
@@ -80,7 +81,7 @@ def get_item_data(rfid_code):  # noqa: E501
 
     :rtype: ItemData
     """
-    item = dbm.Item.query.filter(dbm.Item.rfid_code == rfid_code).first()
+    item = dbm.Item.query.filter(dbm.Item.rfid_code == rfid_code).one_or_none()
     if not item:
         return "Item not found", 404
     return ItemData(name=item.name, price=item.price, weight=item.weight)

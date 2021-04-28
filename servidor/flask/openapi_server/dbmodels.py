@@ -10,14 +10,6 @@ class Client(Base):
     password = Column(String, nullable=False)
     purchase = relationship("Purchase", back_populates="client")
 
-    def __init__(self, name, email, password):
-        self.name = name
-        self.email = email
-        self.password = password
-
-    def __str__(self):
-        return '<User %r>' % (self.name)
-
 
 class Purchase(Base):
     __tablename__ = 'purchase'
@@ -28,11 +20,6 @@ class Purchase(Base):
     client = relationship("Client", back_populates="purchase")
     item = relationship("ItemPurchase")
 
-    def __init__(self, client, cart, vest_type):
-        self.client = client
-        self.cart = cart
-        self.vest_type = vest_type
-
 
 class Item(Base):
     __tablename__ = 'item'
@@ -41,11 +28,6 @@ class Item(Base):
     weight = Column(Integer, nullable=False)
     price = Column(Integer, nullable=False)
 
-    def __init__(self, rfid_code, name, weight, price):
-        self.rfid_code = rfid_code
-        self.name = name
-        self.weight = weight
-        self.price = price
 
 class ItemPurchase(Base):
     __tablename__ = "itempurchase"
