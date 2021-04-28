@@ -14,7 +14,7 @@ struct StartPurchaseView: View {
             Text("Bem vindo Pedro!")
                             .font(.largeTitle).foregroundColor(Color.blue)
                             .padding([.top, .bottom], 40)
-                            .shadow(radius: 10.0, x: 20, y: 10)
+                            .shadow(radius: 10.0, x: 0, y: 10)
             Text("Para iniciar uma compra escaneie o Código QR de um de nossos carrinhos")
                 .padding()
 
@@ -28,8 +28,8 @@ struct StartPurchaseView: View {
                         .padding()
                         .frame(width: 300, height: 50)
                         .background(Color.green)
-                        .cornerRadius(15.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
+                        .cornerRadius(10.0)
+                        .shadow(radius: 10.0, x: 0, y: 10)
             }.padding()
                 
         

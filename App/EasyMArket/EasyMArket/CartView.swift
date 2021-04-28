@@ -29,7 +29,7 @@ struct CartView: View {
                         .padding()
                         .padding([.leading, .trailing], 10)
                         .cornerRadius(5.0)
-                        .shadow(radius: 10.0, x: 5, y: 10)
+                        .shadow(radius: 10.0, x: 0, y: 10)
                 }
                 List(products) { product in
                 HStack(spacing: 0) {
@@ -38,7 +38,7 @@ struct CartView: View {
                         .padding()
                         .padding(.trailing, 100)
                         .shadow(radius: 10.0, x: 0, y: 10)
-                    Text("R$"+String(product.price)+",00")
+                    Text("R$ "+String(product.price)+",00")
                         .frame(minWidth: 0, maxWidth: 80, minHeight: 0, maxHeight: 200)
                         .padding()
                         .shadow(radius: 10.0, x: 0, y: 10)
@@ -57,7 +57,7 @@ struct CartView: View {
                     .frame(minWidth: 0, maxWidth: 200, minHeight: 0, maxHeight: 20)
                 .padding()
                 .padding(.trailing, 180)
-                Text("8,00")
+                Text("R$ 8,00")
                     .frame(minWidth: 0, maxWidth: 80, minHeight: 0, maxHeight: 20)
                     .padding()
                     

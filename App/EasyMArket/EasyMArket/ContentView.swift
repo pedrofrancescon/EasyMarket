@@ -17,28 +17,28 @@ struct ContentView: View {
             Text("Easy Market")
                             .font(.largeTitle).foregroundColor(Color.blue)
                             .padding([.top, .bottom], 40)
-                            .shadow(radius: 10.0, x: 20, y: 10)
+                            .shadow(radius: 10.0, x: 0, y: 10)
                         
                         Image("cart")
                             .resizable()
                             .frame(width: 250, height: 250)
                             .clipShape(Circle())
                             .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                            .shadow(radius: 10.0, x: 20, y: 10)
+                            .shadow(radius: 10.0, x: 0, y: 10)
                             .padding(.bottom, 50)
                         
                         VStack(alignment: .leading, spacing: 15) {
                             TextField("Email", text: self.$email)
                                 .padding()
                                 .background(Color.themeTextField)
-                                .cornerRadius(20.0)
-                                .shadow(radius: 10.0, x: 20, y: 10)
+                                .cornerRadius(10.0)
+                                .shadow(radius: 10.0, x: 0, y: 10)
                             
                             SecureField("Senha", text: self.$password)
                                 .padding()
                                 .background(Color.themeTextField)
-                                .cornerRadius(20.0)
-                                .shadow(radius: 10.0, x: 20, y: 10)
+                                .cornerRadius(10.0)
+                                .shadow(radius: 10.0, x: 0, y: 10)
                         }.padding([.leading, .trailing], 27.5)
                         
             
@@ -50,8 +50,8 @@ struct ContentView: View {
                         .padding()
                         .frame(width: 300, height: 50)
                         .background(Color.green)
-                        .cornerRadius(15.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
+                        .cornerRadius(10.0)
+                        .shadow(radius: 10.0, x: 0, y: 10)
             }.padding()
                         
                         Spacer()

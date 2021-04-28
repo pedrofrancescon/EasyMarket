@@ -17,7 +17,7 @@ struct PaymentMethodView: View {
             Text("Bem vindo!!")
                             .font(.largeTitle).foregroundColor(Color.blue)
                             .padding([.top, .bottom], 40)
-                            .shadow(radius: 10.0, x: 20, y: 10)
+                            .shadow(radius: 10.0, x: 0, y: 10)
             
             Text("Agora cadatre um meio de pagamento")
                 .padding()
@@ -26,26 +26,26 @@ struct PaymentMethodView: View {
                 TextField("Número do Cartão", text: self.$cardNumber)
                     .padding()
                     .background(Color.themeTextField)
-                    .cornerRadius(20.0)
-                    .shadow(radius: 10.0, x: 20, y: 10)
+                    .cornerRadius(10.0)
+                    .shadow(radius: 10.0, x: 0, y: 10)
                 
                 TextField("Nome do Titular", text: self.$nome)
                     .padding()
                     .background(Color.themeTextField)
-                    .cornerRadius(20.0)
-                    .shadow(radius: 10.0, x: 20, y: 10)
+                    .cornerRadius(10.0)
+                    .shadow(radius: 10.0, x: 0, y: 10)
                 
                 TextField("Validade", text: self.$validade)
                     .padding()
                     .background(Color.themeTextField)
-                    .cornerRadius(20.0)
-                    .shadow(radius: 10.0, x: 20, y: 10)
+                    .cornerRadius(10.0)
+                    .shadow(radius: 10.0, x: 0, y: 10)
                 
                 TextField("Código de Segurança", text: self.$cvv)
                     .padding()
                     .background(Color.themeTextField)
-                    .cornerRadius(20.0)
-                    .shadow(radius: 10.0, x: 20, y: 10)
+                    .cornerRadius(10.0)
+                    .shadow(radius: 10.0, x: 0, y: 10)
             }.padding([.leading, .trailing], 27.5)
             Spacer()
             
@@ -58,8 +58,8 @@ struct PaymentMethodView: View {
                         .padding()
                         .frame(width: 300, height: 50)
                         .background(Color.green)
-                        .cornerRadius(15.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
+                        .cornerRadius(10.0)
+                        .shadow(radius: 10.0, x: 0, y: 10)
                 
              }
                 
