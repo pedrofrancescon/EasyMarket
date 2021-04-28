@@ -32,7 +32,7 @@ class Item(Base):
 class ItemPurchase(Base):
     __tablename__ = "itempurchase"
     item_rfid_code = Column(Integer, ForeignKey('item.rfid_code'), nullable=False, primary_key=True)
-    purchase_id = Column(Integer, ForeignKey('purchase.id'), nullable=False, primary_key=True, on_delete='CASCADE')
+    purchase_id = Column(Integer, ForeignKey('purchase.id', ondelete='CASCADE'), nullable=False, primary_key=True)
     amount = Column(Integer, nullable=False)
     item = relationship("Item")
 
