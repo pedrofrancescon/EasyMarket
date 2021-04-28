@@ -6,6 +6,7 @@ from openapi_server.models.item_data import ItemData  # noqa: E501
 from openapi_server import util
 
 import openapi_server.dbmodels as dbm
+from openapi_server.database import db_session as db
 
 def cart_alter_item(rfid_code, purchase_id, body):  # noqa: E501
     """alter amount of item in purchase
@@ -21,7 +22,18 @@ def cart_alter_item(rfid_code, purchase_id, body):  # noqa: E501
 
     :rtype: None
     """
-    return 'do some magic!'
+    purchase = dbm.Purchase.query.filter(dbm.Purchase.id == purchase_id).first()
+    if not purchase:
+        return "purchase not found", 404
+    itempurchase = dbm.Purchase.query.join(dbm.ItemPurchase).filter(dbm.Purchase.id == purchase_id).filter(dbm.ItemPurchase.item_rfid_code == rfid_code).first()
+    if not itempurchase:
+        itempurchase = dbm.ItemPurchase(item_rfid_code=rfid_code, purchase_id=purchase_id, amount=body)
+        db.add(itempurchase)
+    else:
+        itempurchase.amount = body
+    print(itempurchase)
+    db.commit()
+    return 'ok'
 
 
 def cart_check_on_purchase(qr_code):  # noqa: E501
@@ -54,7 +66,7 @@ def cart_end_purchase(qr_code):  # noqa: E501
     if not purchase:
         return "not in purchase", 404
     purchase.cart = None
-    purchase.commit()
+    db.commit()
     return "ok"
 
 

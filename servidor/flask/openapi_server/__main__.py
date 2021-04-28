@@ -12,12 +12,12 @@ def main():
     app.add_api('openapi.yaml',
                 arguments={'title': 'EasyMarket Server'},
                 pythonic_params=True)
+    app.app.teardown_appcontext(shutdown_session)
 
     app.run(port=8080)
 
-    @app.teardown_appcontext
-    def shutdown_session(exception=None):
-        db_session.remove()    
+def shutdown_session(exception=None):
+    db_session.remove()    
 
 
 if __name__ == '__main__':
