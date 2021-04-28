@@ -8,85 +8,69 @@
 import SwiftUI
 
 struct CartView: View {
+    @State var products: [Product] = [Product(name:"Bombom",price:3, weight:20), Product(name:"Biscoito",price:5, weight:30)]
     var body: some View {
+        
         VStack {
-            Text("Seu carrinho")
-                .font(.largeTitle).foregroundColor(Color.white)
+            Text("Acompanhe seu carrinho")
+                .font(.title3).foregroundColor(Color.blue)
                 .padding()
-                .shadow(radius: 10.0, x: 20, y: 10)
+                .shadow(radius: 10.0, x: 0, y: 10)
             VStack {
                 HStack(spacing: 0) {
-                    Text("Item 01   ")
+                    Text("Descrição")
+                        .frame(minWidth: 0, maxWidth: 200, minHeight: 0, maxHeight: 20)
                         .padding()
-                        .padding(.leading, 10)
-                        .padding(.trailing, 180)
-                        .background(Color.themeTextField)
-                        .cornerRadius(10.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
-                    Text("15,00")
+                        .padding(.trailing, 100)
+                        .cornerRadius(5.0)
+                        .shadow(radius: 10.0, x: 0, y: 10)
+                    Text("Preço")
+                        .frame(minWidth: 0, maxWidth: 80, minHeight: 0, maxHeight: 20)
                         .padding()
                         .padding([.leading, .trailing], 10)
-                        .background(Color.themeTextField)
-                        .cornerRadius(10.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
+                        .cornerRadius(5.0)
+                        .shadow(radius: 10.0, x: 5, y: 10)
                 }
+                List(products) { product in
                 HStack(spacing: 0) {
-                    Text("Item 02   ")
+                    Text(product.name)
+                        .frame(minWidth: 0, maxWidth: 200, minHeight: 0, maxHeight: 200)
                         .padding()
-                        .padding(.leading, 10)
-                        .padding(.trailing, 180)
-                        .background(Color.themeTextField)
-                        .cornerRadius(10.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
-                    Text("10,00")
+                        .padding(.trailing, 100)
+                        .shadow(radius: 10.0, x: 0, y: 10)
+                    Text("R$"+String(product.price)+",00")
+                        .frame(minWidth: 0, maxWidth: 80, minHeight: 0, maxHeight: 200)
                         .padding()
-                        .padding([.leading, .trailing], 10)
-                        .background(Color.themeTextField)
-                        .cornerRadius(10.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
+                        .shadow(radius: 10.0, x: 0, y: 10)
                 }
-                HStack(spacing: 0) {
-                    Text("Item 03   ")
-                        .padding()
-                        .padding(.leading, 10)
-                        .padding(.trailing, 180)
-                        .background(Color.themeTextField)
-                        .cornerRadius(10.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
-                    Text("07,50")
-                        .padding()
-                        .padding([.leading, .trailing], 10)
-                        .background(Color.themeTextField)
-                        .cornerRadius(10.0)
-                        .shadow(radius: 10.0, x: 20, y: 10)
-                }
+//                .onAppear
+//                {
+//                    apiCall().getProducts { (products) in
+//                        self.products = products
+//                    }
+//                }
+//
             }.padding()
             Spacer()
             HStack(spacing: 0) {
-                Text("Total   ")
+                Text("Total")
+                    .frame(minWidth: 0, maxWidth: 200, minHeight: 0, maxHeight: 20)
                 .padding()
-                .padding(.leading, 10)
                 .padding(.trailing, 180)
-                .background(Color.themeTextField)
-                .cornerRadius(20.0)
-                .shadow(radius: 10.0, x: 20, y: 10)
-                Text("32,50")
+                Text("8,00")
+                    .frame(minWidth: 0, maxWidth: 80, minHeight: 0, maxHeight: 20)
                     .padding()
-                    .padding([.leading, .trailing], 10)
-                    .background(Color.themeTextField)
-                    .cornerRadius(20.0)
-                    .shadow(radius: 10.0, x: 20, y: 10)}
+                    
+            }
             Text("Está tendo algum problema?")
                 .padding()
                 
             
         
-        }.background(
-            LinearGradient(gradient: Gradient(colors: [.blue, .white]), startPoint: .top, endPoint: .bottom)
-                .edgesIgnoringSafeArea(.all))
+        }.background(Color.white)
     }
 }
-
+}
 
 
 struct CartView_Previews: PreviewProvider {

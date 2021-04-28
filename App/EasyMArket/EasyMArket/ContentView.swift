@@ -12,9 +12,10 @@ struct ContentView: View {
     @State private var email = ""
     @State private var password = ""
     var body: some View {
-        VStack {
+        NavigationView {
+            VStack {
             Text("Easy Market")
-                            .font(.largeTitle).foregroundColor(Color.white)
+                            .font(.largeTitle).foregroundColor(Color.blue)
                             .padding([.top, .bottom], 40)
                             .shadow(radius: 10.0, x: 20, y: 10)
                         
@@ -40,16 +41,18 @@ struct ContentView: View {
                                 .shadow(radius: 10.0, x: 20, y: 10)
                         }.padding([.leading, .trailing], 27.5)
                         
-                        Button(action: {}) {
-                            Text("Entrar")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(width: 300, height: 50)
-                                .background(Color.green)
-                                .cornerRadius(15.0)
-                                .shadow(radius: 10.0, x: 20, y: 10)
-                        }.padding(.top, 50)
+            
+            NavigationLink(destination: PaymentMethodView()) {
+                    Text("Entrar")
+                        .buttonStyle(PlainButtonStyle())
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(width: 300, height: 50)
+                        .background(Color.green)
+                        .cornerRadius(15.0)
+                        .shadow(radius: 10.0, x: 20, y: 10)
+            }.padding()
                         
                         Spacer()
                         HStack(spacing: 0) {
@@ -60,14 +63,12 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .background(
-                        LinearGradient(gradient: Gradient(colors: [.blue, .white]), startPoint: .top, endPoint: .bottom)
-                            .edgesIgnoringSafeArea(.all))
+                    .background(Color.white)
                     
             
         }
     }
-
+}
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

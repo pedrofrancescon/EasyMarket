@@ -13,6 +13,7 @@ struct User: Codable, Identifiable {
     let name: String
 }
 
+
 class apiCall {
     func getUsers(completion:@escaping ([User]) -> ()) {
         guard let url = URL(string: "https://jsonplaceholder.typicode.com/users") else { return }
@@ -22,6 +23,18 @@ class apiCall {
             
             DispatchQueue.main.async {
                 completion(users)
+            }
+        }
+        .resume()
+    }
+    func getProducts(completion:@escaping ([Product]) -> ()) {
+        guard let url = URL(string: "#/puchase/{rfid}") else { return }
+        URLSession.shared.dataTask(with: url) { (data, _, _) in
+            let products = try! JSONDecoder().decode([Product].self, from: data!)
+            print(products)
+            
+            DispatchQueue.main.async {
+                completion(products)
             }
         }
         .resume()
