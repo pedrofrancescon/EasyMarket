@@ -124,19 +124,12 @@ paths:
             schema:
               example:
                 payment: 4748967312
-                login:
-                  password: senha
-                  email: josesilva@gmail.com
               properties:
-                login:
-                  $ref: '#/components/schemas/login'
                 payment:
                   description: Payment method. Optional (transaction not completed
                     if absent)
                   example: 4748967312
                   type: integer
-              required:
-              - login
               title: PaymentDataReq
               type: object
       responses:
@@ -148,28 +141,14 @@ paths:
           description: Login failure
         "404":
           description: No purchase in progress
+      security:
+      - basicAuth: []
       summary: End a purchase by the client
       tags:
       - app
       x-openapi-router-controller: openapi_server.controllers.app_controller
     get:
       operationId: get_current_purchase
-      requestBody:
-        $ref: '#/components/requestBodies/LoginReq'
-        content:
-          application/json:
-            schema:
-              example:
-                login:
-                  password: senha
-                  email: josesilva@gmail.com
-              properties:
-                login:
-                  $ref: '#/components/schemas/login'
-              required:
-              - login
-              title: LoginReq
-              type: object
       responses:
         "200":
           content:
@@ -184,6 +163,8 @@ paths:
           description: Login failure
         "404":
           description: No purchase in progress
+      security:
+      - basicAuth: []
       summary: Get current purchase items
       tags:
       - app
@@ -198,12 +179,7 @@ paths:
               example:
                 VestType: blue
                 qr_code: "5477"
-                login:
-                  password: senha
-                  email: josesilva@gmail.com
               properties:
-                login:
-                  $ref: '#/components/schemas/login'
                 qr_code:
                   description: Cart qr_code
                   example: "5477"
@@ -212,7 +188,6 @@ paths:
                   $ref: '#/components/schemas/vesttype'
               required:
               - VestType
-              - login
               - qr_code
               title: PurchaseStartReq
               type: object
@@ -225,6 +200,8 @@ paths:
           description: Login failure
         "409":
           description: Purchase already in progress
+      security:
+      - basicAuth: []
       summary: Start a purchase
       tags:
       - app
@@ -297,11 +274,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PaymentDataReq'
-    LoginReq:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/LoginReq'
     PurchaseStartReq:
       content:
         application/json:
@@ -382,18 +354,6 @@ components:
       - weight
       title: ItemData
       type: object
-    LoginReq:
-      example:
-        login:
-          password: senha
-          email: josesilva@gmail.com
-      properties:
-        login:
-          $ref: '#/components/schemas/login'
-      required:
-      - login
-      title: LoginReq
-      type: object
     PurchaseItem:
       example:
         amount: 3
@@ -424,12 +384,7 @@ components:
       example:
         VestType: blue
         qr_code: "5477"
-        login:
-          password: senha
-          email: josesilva@gmail.com
       properties:
-        login:
-          $ref: '#/components/schemas/login'
         qr_code:
           description: Cart qr_code
           example: "5477"
@@ -438,25 +393,17 @@ components:
           $ref: '#/components/schemas/vesttype'
       required:
       - VestType
-      - login
       - qr_code
       title: PurchaseStartReq
       type: object
     PaymentDataReq:
       example:
         payment: 4748967312
-        login:
-          password: senha
-          email: josesilva@gmail.com
       properties:
-        login:
-          $ref: '#/components/schemas/login'
         payment:
           description: Payment method. Optional (transaction not completed if absent)
           example: 4748967312
           type: integer
-      required:
-      - login
       title: PaymentDataReq
       type: object
     NewLoginReq:
@@ -477,3 +424,8 @@ components:
       - name
       title: NewLoginReq
       type: object
+  securitySchemes:
+    basicAuth:
+      scheme: basic
+      type: http
+      x-basicInfoFunc: openapi_server.controllers.security_controller_.info_from_basicAuth

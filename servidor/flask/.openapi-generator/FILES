@@ -17,7 +17,6 @@ openapi_server/models/base_model_.py
 openapi_server/models/cart_status.py
 openapi_server/models/item_data.py
 openapi_server/models/login.py
-openapi_server/models/login_req.py
 openapi_server/models/new_login_req.py
 openapi_server/models/payment_data_req.py
 openapi_server/models/purchase_item.py

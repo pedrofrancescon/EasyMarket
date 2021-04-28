@@ -3,6 +3,10 @@ info:
   title: EasyMarket Server
   version: 0.0.1
 components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
   parameters:
     rfid_code:
       name: rfid_code
@@ -126,6 +130,8 @@ paths:
     post:
       summary: Start a purchase
       operationId: StartPurchase
+      security:
+        - basicAuth: []
       tags:
         - app
       requestBody:
@@ -135,12 +141,9 @@ paths:
               type: object
               title: PurchaseStartReq
               required:
-                - login
                 - qr_code
                 - VestType
               properties:
-                login:
-                  $ref: "#/components/schemas/login"
                 qr_code:
                   $ref: "#/components/schemas/qr_code"
                 VestType:
@@ -157,19 +160,10 @@ paths:
     get:
       summary: Get current purchase items
       operationId: GetCurrentPurchase
+      security:
+        - basicAuth: []
       tags:
         - app
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              title: LoginReq
-              required:
-                - login
-              properties:
-                login:
-                  $ref: "#/components/schemas/login"
       responses:
         "200":
           description: "OK"
@@ -207,6 +201,8 @@ paths:
     delete:
       summary: End a purchase by the client
       operationId: AppEndPurchase
+      security:
+        - basicAuth: []
       tags:
         - app
       description: Tries to end a purchase by either cancelling the purchase (does not include payment) or completing it(includes payment)
@@ -216,11 +212,7 @@ paths:
             schema:
               type: object
               title: PaymentDataReq
-              required:
-                - login
               properties:
-                login:
-                  $ref: "#/components/schemas/login"
                 payment:
                   type: integer
                   description: Payment method. Optional (transaction not completed if absent)

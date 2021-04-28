@@ -26,7 +26,7 @@ def cart_alter_item(rfid_code, purchase_id, body):  # noqa: E501
     purchase = dbm.Purchase.query.filter(dbm.Purchase.id == purchase_id).one_or_none()
     if not purchase:
         return "purchase not found", 404
-    itempurchase = dbm.Purchase.query.join(dbm.ItemPurchase).filter(dbm.Purchase.id == purchase_id).filter(dbm.ItemPurchase.item_rfid_code == rfid_code).first()
+    itempurchase = dbm.ItemPurchase.query.join(dbm.Purchase).filter(dbm.Purchase.id == purchase_id).filter(dbm.ItemPurchase.item_rfid_code == rfid_code).one_or_none()
     if not itempurchase:
         itempurchase = dbm.ItemPurchase(item_rfid_code=rfid_code, purchase_id=purchase_id, amount=body)
         db.add(itempurchase)

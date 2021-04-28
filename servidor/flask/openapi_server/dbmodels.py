@@ -18,7 +18,7 @@ class Purchase(Base):
     cart = Column(Integer, nullable=True, unique=True)
     vest_type = Column(String, nullable=False)
     client = relationship("Client", back_populates="purchase")
-    item = relationship("ItemPurchase")
+    item = relationship("ItemPurchase", cascade='all, delete')
 
 
 class Item(Base):
@@ -32,6 +32,7 @@ class Item(Base):
 class ItemPurchase(Base):
     __tablename__ = "itempurchase"
     item_rfid_code = Column(Integer, ForeignKey('item.rfid_code'), nullable=False, primary_key=True)
-    purchase_id = Column(Integer, ForeignKey('purchase.id'), nullable=False, primary_key=True)
+    purchase_id = Column(Integer, ForeignKey('purchase.id'), nullable=False, primary_key=True, on_delete='CASCADE')
     amount = Column(Integer, nullable=False)
+    item = relationship("Item")
 
