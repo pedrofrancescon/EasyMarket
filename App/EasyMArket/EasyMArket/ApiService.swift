@@ -15,21 +15,27 @@ struct User: Codable, Identifiable {
 
 
 class apiCall {
-    func getUsers(completion:@escaping ([User]) -> ()) {
-        guard let url = URL(string: "https://jsonplaceholder.typicode.com/users") else { return }
+    func getUser(completion:@escaping (User) -> ()) {
+        guard let url = URL(string: "http://localhost:8080/user") else { return }
         URLSession.shared.dataTask(with: url) { (data, _, _) in
-            let users = try! JSONDecoder().decode([User].self, from: data!)
-            print(users)
+            let user = try! JSONDecoder().decode(User.self, from: data!)
+            print(user)
             
             DispatchQueue.main.async {
-                completion(users)
+                completion(user)
             }
         }
         .resume()
     }
+    
     func getProducts(completion:@escaping ([Product]) -> ()) {
-        guard let url = URL(string: "#/puchase/{rfid}") else { return }
-        URLSession.shared.dataTask(with: url) { (data, _, _) in
+        guard let url = URL(string: "http://localhost:8080/purchase/") else { return }
+        var request = URLRequest(url: url)
+        request.setValue(<#T##value: String?##String?#>, forHTTPHeaderField: <#T##String#>)
+        //let requestbody = ["login":"pfcitollin@gmail.com", "senha":"123456"]
+        //let bodyData = try? JSONSerialization.data(withJSONObject: requestbody, options: [])
+        request.httpMethod = "GET"
+        URLSession.shared.dataTask(with: request) { (data, _, _) in
             let products = try! JSONDecoder().decode([Product].self, from: data!)
             print(products)
             

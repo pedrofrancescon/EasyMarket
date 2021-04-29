@@ -15,10 +15,10 @@ struct UserView: View {
                .font(.headline)
             Text(user.name)
                .font(.subheadline)
-        }.onAppear {
-            apiCall().getUsers { (users) in
-                self.users = users
-            }
+//        }.onAppear {
+//            apiCall().getUser { (users) in
+//                self.users = users
+//            }
         }
     }
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CartView: View {
-    @State var products: [Product] = [Product(name:"Bombom",price:3, weight:20), Product(name:"Biscoito",price:5, weight:30)]
+    @State var products: [Product] = []
     var body: some View {
         
         VStack {
@@ -43,13 +43,13 @@ struct CartView: View {
                         .padding()
                         .shadow(radius: 10.0, x: 0, y: 10)
                 }
-//                .onAppear
-//                {
-//                    apiCall().getProducts { (products) in
-//                        self.products = products
-//                    }
-//                }
-//
+                .onAppear
+                {
+                    apiCall().getProducts { (products) in
+                        self.products = products
+                    }
+                }
+
             }.padding()
             Spacer()
             HStack(spacing: 0) {
