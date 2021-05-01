@@ -1,0 +1,7 @@
+BEGIN TRANSACTION;
+INSERT INTO "item" VALUES 
+ (315748,'Leite Vaqueiro',1004,299),
+ (142877593,'Sabonete',500,300),
+ (142879131,'Protetor Solar',300,200),
+ (142883227,'Creme Hidratante',200,450);
+COMMIT;
