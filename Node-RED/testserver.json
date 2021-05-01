@@ -1,0 +1,367 @@
+[
+    {
+        "id": "1d7ed4f2.54c83b",
+        "type": "tab",
+        "label": "Server test",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "14c60a10.794df6",
+        "type": "http request",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://localhost:8080/item/{{rfid_code}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 610,
+        "y": 220,
+        "wires": [
+            [
+                "b4ea8dd4.61a05"
+            ]
+        ]
+    },
+    {
+        "id": "b4ea8dd4.61a05",
+        "type": "debug",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 770,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "e69250cf.368fd",
+        "type": "change",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "rfid_code",
+                "pt": "msg",
+                "to": "315748",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 220,
+        "wires": [
+            [
+                "14c60a10.794df6"
+            ]
+        ]
+    },
+    {
+        "id": "3479192a.04f016",
+        "type": "inject",
+        "z": "1d7ed4f2.54c83b",
+        "name": "item",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "x": 130,
+        "y": 220,
+        "wires": [
+            [
+                "e69250cf.368fd"
+            ]
+        ]
+    },
+    {
+        "id": "e437f282.3a9d58",
+        "type": "http request",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://localhost:8080/cart/{{cart}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 610,
+        "y": 300,
+        "wires": [
+            [
+                "dbd2ef50.87c78"
+            ]
+        ]
+    },
+    {
+        "id": "dbd2ef50.87c78",
+        "type": "debug",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 770,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "9b5def1b.f6098",
+        "type": "change",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "cart",
+                "pt": "msg",
+                "to": "5477",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 300,
+        "wires": [
+            [
+                "e437f282.3a9d58"
+            ]
+        ]
+    },
+    {
+        "id": "462732f4.be5904",
+        "type": "inject",
+        "z": "1d7ed4f2.54c83b",
+        "name": "cart status",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "x": 140,
+        "y": 300,
+        "wires": [
+            [
+                "9b5def1b.f6098"
+            ]
+        ]
+    },
+    {
+        "id": "b4243068.79e2e",
+        "type": "http request",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "method": "PUT",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://localhost:8080//purchase/{{purchase_id}}/{{rfid_code}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 610,
+        "y": 380,
+        "wires": [
+            [
+                "70c435aa.104c54"
+            ]
+        ]
+    },
+    {
+        "id": "70c435aa.104c54",
+        "type": "debug",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 750,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "89a70dc4.34801",
+        "type": "change",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "purchase_id",
+                "pt": "msg",
+                "to": "1",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "3",
+                "tot": "num"
+            },
+            {
+                "t": "set",
+                "p": "rfid_code",
+                "pt": "msg",
+                "to": "315748",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "headers.Content-Type",
+                "pt": "msg",
+                "to": "application/json",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 380,
+        "wires": [
+            [
+                "b4243068.79e2e"
+            ]
+        ]
+    },
+    {
+        "id": "357a2eba.f50932",
+        "type": "inject",
+        "z": "1d7ed4f2.54c83b",
+        "name": "change item in purchase",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payloadType": "str",
+        "x": 190,
+        "y": 380,
+        "wires": [
+            [
+                "89a70dc4.34801"
+            ]
+        ]
+    },
+    {
+        "id": "de0c5265.c88e6",
+        "type": "http request",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "method": "DELETE",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://localhost:8080/cart/{{cart}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 610,
+        "y": 460,
+        "wires": [
+            [
+                "1d618cbc.fe7913"
+            ]
+        ]
+    },
+    {
+        "id": "1d618cbc.fe7913",
+        "type": "debug",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 770,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "5e7a981.d7d24e8",
+        "type": "change",
+        "z": "1d7ed4f2.54c83b",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "cart",
+                "pt": "msg",
+                "to": "5477",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 410,
+        "y": 460,
+        "wires": [
+            [
+                "de0c5265.c88e6"
+            ]
+        ]
+    },
+    {
+        "id": "86abd52f.f0d78",
+        "type": "inject",
+        "z": "1d7ed4f2.54c83b",
+        "name": "end purchase cart",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "x": 170,
+        "y": 460,
+        "wires": [
+            [
+                "5e7a981.d7d24e8"
+            ]
+        ]
+    }
+]
