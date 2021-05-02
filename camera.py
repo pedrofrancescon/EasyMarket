@@ -124,11 +124,11 @@ while(1):
 		b = t[1]
 		dist = cv2.norm(b - a, cv2.NORM_L2)
 		mid = a + (b - a)/2
-		dic =  {"x": mid[0]/imageFrame.shape[1], "y": mid[1]/imageFrame.shape[0]}
-		import json
-		print(json.dumps(dic))
 		acc.append(dist)
 		mean = sum(acc)/len(acc)
+		dic =  {"x": mid[0]/imageFrame.shape[1], "y": mid[1]/imageFrame.shape[0], 'mean_distance': mean}
+		import json
+		print(json.dumps(dic))
 		cv2.putText(imageFrame, "{:.2f}".format(mean), tuple(np.int0(mid)), 
 					cv2.FONT_HERSHEY_SIMPLEX, 
 					1.0, (0, 0, 255),4) 

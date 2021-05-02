@@ -32,7 +32,8 @@ def cart_alter_item(rfid_code, purchase_id, body):  # noqa: E501
         db.add(itempurchase)
     else:
         itempurchase.amount = body
-    print(itempurchase)
+    if itempurchase.amount == 0:
+        db.delete(itempurchase)
     db.commit()
     return 'ok'
 
