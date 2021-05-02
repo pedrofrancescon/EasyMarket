@@ -15,32 +15,43 @@ struct User: Codable, Identifiable {
 
 
 class apiCall {
-    func getUser(completion:@escaping (User) -> ()) {
-        guard let url = URL(string: "http://localhost:8080/user") else { return }
+    func getUsers(completion:@escaping ([User]) -> ()) {
+        guard let url = URL(string: "https://jsonplaceholder.typicode.com/users") else { return }
         URLSession.shared.dataTask(with: url) { (data, _, _) in
-            let user = try! JSONDecoder().decode(User.self, from: data!)
-            print(user)
+            let users = try! JSONDecoder().decode([User].self, from: data!)
+            print(users)
             
             DispatchQueue.main.async {
-                completion(user)
+                completion(users)
             }
         }
         .resume()
     }
     
     func getProducts(completion:@escaping ([Product]) -> ()) {
-        guard let url = URL(string: "http://localhost:8080/purchase/") else { return }
+        guard let url = URL(string: "http://localhost:8080/purchase") else { return }
+        
         var request = URLRequest(url: url)
-        request.setValue(<#T##value: String?##String?#>, forHTTPHeaderField: <#T##String#>)
-        //let requestbody = ["login":"pfcitollin@gmail.com", "senha":"123456"]
-        //let bodyData = try? JSONSerialization.data(withJSONObject: requestbody, options: [])
+        
+        let username = "pfcitollin@gmail.com"
+        let password = "123456"
+        let loginString = String(format: "%@:%@", username, password)
+        let loginData = loginString.data(using: String.Encoding.utf8)!
+        let base64LoginString = loginData.base64EncodedString()
+
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+        request.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
         request.httpMethod = "GET"
+
         URLSession.shared.dataTask(with: request) { (data, _, _) in
-            let products = try! JSONDecoder().decode([Product].self, from: data!)
-            print(products)
-            
-            DispatchQueue.main.async {
-                completion(products)
+            if (data != nil){
+                let products = try! JSONDecoder().decode([Product].self, from: data!)
+                print (products)
+                DispatchQueue.main.async {
+                    completion(products)
+                }
+            } else {
+                return
             }
         }
         .resume()

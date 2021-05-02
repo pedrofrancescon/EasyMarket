@@ -42,7 +42,7 @@ struct ContentView: View {
                         }.padding([.leading, .trailing], 27.5)
                         
             
-            NavigationLink(destination: PaymentMethodView()) {
+            NavigationLink(destination: CartView()) {
                     Text("Entrar")
                         .buttonStyle(PlainButtonStyle())
                         .font(.headline)
