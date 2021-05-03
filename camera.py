@@ -46,7 +46,13 @@ masks = {
 # Start a while loop
 
 
-def runonce(camera, gui=True, color="blue"):
+kk = 0
+
+def runonce(camera, gui=True, color="blue", save=None):
+    global kk
+    global hsvFrame
+    if save:
+        kk = (kk + 1) % save
     # Reading the video from the
     # camera in image frames
     ret, imageFrame = camera.read()
@@ -63,6 +69,8 @@ def runonce(camera, gui=True, color="blue"):
     mask = cv2.inRange(hsvFrame, masks[color][0], masks[color][1])
     if gui:
         cv2.imshow("mask", mask)
+    if save:
+        cv2.imwrite("mask-{}.png".format(kk), mask)
 
     # Morphological Transform, Dilation
     # for each color and bitwise_and operator
@@ -73,9 +81,13 @@ def runonce(camera, gui=True, color="blue"):
     mask = cv2.dilate(mask, kernal)
     if gui:
         cv2.imshow("dilated", mask)
+    if save:
+        cv2.imwrite("dilated-{}.png".format(kk), mask)
     res = cv2.bitwise_and(imageFrame, imageFrame, mask=mask)
     if gui:
         cv2.imshow("res", res)
+    if save:
+        cv2.imwrite("res-{}.png".format(kk), res)
 
     # Creating contour to track green color
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -101,16 +113,15 @@ def runonce(camera, gui=True, color="blue"):
         oo = np.int0(rect[0])
         cv2.circle(imageFrame, tuple(oo), 3, (0, 255, 0), cv2.FILLED)
         t.append(oo)
-        if gui:
-            cv2.putText(
-                imageFrame,
-                "{:.2f}".format(area),
-                tuple(oo),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1.0,
-                (0, 255, 0),
-                2,
-            )
+        cv2.putText(
+            imageFrame,
+            "{:.2f}".format(area),
+            tuple(oo),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            (0, 255, 0),
+            2,
+        )
     global misses
     global acc
 
@@ -131,16 +142,15 @@ def runonce(camera, gui=True, color="blue"):
             "mean_distance": mean,
         }
 
-        if gui:
-            cv2.putText(
-                imageFrame,
-                "{:.2f}".format(mean),
-                tuple(np.int0(mid)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1.0,
-                (0, 0, 255),
-                4,
-            )
+        cv2.putText(
+            imageFrame,
+            "{:.2f}".format(mean),
+            tuple(np.int0(mid)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            (0, 0, 255),
+            4,
+        )
     else:
         misses += 1
 
@@ -150,6 +160,8 @@ def runonce(camera, gui=True, color="blue"):
     if len(acc) >= 20:
         acc.pop(0)
 
+    if save:
+        cv2.imwrite("colour-{}.png".format(kk), imageFrame)
     if gui:
         cv2.imshow("colour", imageFrame)
         cv2.setMouseCallback("colour", mouseRGB)
@@ -174,12 +186,18 @@ def main():
         type=str,
     )
     parser.add_argument("--gui", action="store_true", help="enable gui")
+    parser.add_argument(
+        "--save",
+        default=0,
+        help="length of save cycle (0 for no save)",
+        type=int,
+    )
     args = parser.parse_args()
 
     camera = cv2.VideoCapture(args.camera)
 
     while 1:
-        dic = runonce(camera, args.gui, args.color)
+        dic = runonce(camera, args.gui, args.color, args.save)
         if dic:
             print(json.dumps(dic))
 
