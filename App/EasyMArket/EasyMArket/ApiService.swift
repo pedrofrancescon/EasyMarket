@@ -33,12 +33,12 @@ class apiCall {
         
         var request = URLRequest(url: url)
         
-        let username = "pfcitollin@gmail.com"
+        let username = "pfcittolin@gmail.com"
         let password = "123456"
         let loginString = String(format: "%@:%@", username, password)
         let loginData = loginString.data(using: String.Encoding.utf8)!
         let base64LoginString = loginData.base64EncodedString()
-
+        //if (base64LoginString != "cGZjaXR0b2xpbkBnbWFpbC5jb206MTIzNDU2"){print (base64LoginString)}
         request.setValue("application/json", forHTTPHeaderField: "accept")
         request.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
         request.httpMethod = "GET"
