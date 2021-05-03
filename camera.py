@@ -4,6 +4,9 @@
 import numpy as np 
 import cv2 
 
+gui = False
+camera = 0
+
 hsvFrame = None
 
 def mouseRGB(event,x,y,flags,param):
@@ -13,7 +16,7 @@ def mouseRGB(event,x,y,flags,param):
 		print("Coordinates of pixel: X: ",x,"Y: ",y)
 
 # Capturing video through webcam 
-webcam = cv2.VideoCapture(0) 
+webcam = cv2.VideoCapture(camera
 misses = 0
 i = 0
 acc = []
@@ -57,7 +60,8 @@ while(1):
 	orangel = np.array([105,180,10], np.uint8)
 	orangeh = np.array([120, 255, 255], np.uint8) 
 	orange_mask = cv2.inRange(hsvFrame, orangel, orangeh) 
-	cv2.imshow("mask", orange_mask)
+	if gui:
+		cv2.imshow("mask", orange_mask)
 	
 	# Morphological Transform, Dilation 
 	# for each color and bitwise_and operator 
@@ -78,9 +82,11 @@ while(1):
 	res_blue = cv2.bitwise_and(imageFrame, imageFrame, mask = blue_mask) 
 
 	orange_mask = cv2.dilate(orange_mask, kernal) 
-	cv2.imshow("dilated", orange_mask)
+	if gui:
+		cv2.imshow("dilated", orange_mask)
 	res_orange = cv2.bitwise_and(imageFrame, imageFrame, mask = orange_mask) 
-	cv2.imshow("res", res_orange)
+	if gui:
+		cv2.imshow("res", res_orange)
 
 	# Creating contour to track green color 
 	contours, hierarchy = cv2.findContours(orange_mask, 
@@ -148,13 +154,14 @@ while(1):
 #									(0, 255, 0), 2) 
 			
 
-	# Program Termination 
-	cv2.imshow("colour", imageFrame)
-	cv2.setMouseCallback('colour',mouseRGB)
-	if cv2.waitKey(10) & 0xFF == ord('q'): 
-		cap.release() 
-		cv2.destroyAllWindows() 
-		break
+	# Program Termination
+	if gui:
+		cv2.imshow("colour", imageFrame)
+		cv2.setMouseCallback('colour',mouseRGB)
+		if cv2.waitKey(10) & 0xFF == ord('q'): 
+			cap.release() 
+			cv2.destroyAllWindows() 
+			break
 
 
 
