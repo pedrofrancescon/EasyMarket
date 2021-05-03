@@ -1,14 +1,10 @@
+#!/usr/bin/env python3
+
 # Python code for Multiple Color Detection
 
-
+import itertools
 import numpy as np
 import cv2
-import argparse
-
-gui = False
-camera = 0
-
-hsvFrame = None
 
 
 def mouseRGB(event, x, y, flags, param):
@@ -18,21 +14,45 @@ def mouseRGB(event, x, y, flags, param):
         print("Coordinates of pixel: X: ", x, "Y: ", y)
 
 
-# Capturing video through webcam
-webcam = cv2.VideoCapture(camera)
+# Capturing video through camera
 misses = 0
-i = 0
 acc = []
 
-# Start a while loop
-while 1:
+masks = {
+    # Set range for red color and
+    # define mask
+    "red": [
+        np.array([136, 87, 111], np.uint8),
+        np.array([180, 255, 255], np.uint8),
+    ],
+    "green": [
+        # Set range for green color and
+        # define mask
+        np.array([25, 52, 72], np.uint8),
+        np.array([102, 255, 255], np.uint8),
+    ],
+    "blue2": [
+        # Set range for blue color and
+        # define mask
+        np.array([94, 80, 2], np.uint8),
+        np.array([120, 255, 255], np.uint8),
+    ],
+    "blue": [
+        np.array([105, 180, 10], np.uint8),
+        np.array([120, 255, 255], np.uint8),
+    ],
+}
 
+# Start a while loop
+
+
+def runonce(camera, gui=True, color="blue"):
     # Reading the video from the
-    # webcam in image frames
-    ret, imageFrame = webcam.read()
+    # camera in image frames
+    ret, imageFrame = camera.read()
     if not ret:
-        print("error")
-        continue
+        print(imageFrame)
+        raise Exception("can't read camera: {} {}".format(ret, camera))
 
     # Convert the imageFrame in
     # BGR(RGB color space) to
@@ -40,31 +60,9 @@ while 1:
     # color space
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV)
 
-    # Set range for red color and
-    # define mask
-    red_lower = np.array([136, 87, 111], np.uint8)
-    red_upper = np.array([180, 255, 255], np.uint8)
-    red_mask = cv2.inRange(hsvFrame, red_lower, red_upper)
-
-    # Set range for green color and
-    # define mask
-    green_lower = np.array([25, 52, 72], np.uint8)
-    green_upper = np.array([102, 255, 255], np.uint8)
-    green_mask = cv2.inRange(hsvFrame, green_lower, green_upper)
-
-    # Set range for blue color and
-    # define mask
-    blue_lower = np.array([94, 80, 2], np.uint8)
-    blue_upper = np.array([120, 255, 255], np.uint8)
-    blue_mask = cv2.inRange(hsvFrame, blue_lower, blue_upper)
-
-    # 	orangel = np.array([30,100,150], np.uint8)
-    # 	orangeh = np.array([40, 255, 255], np.uint8)
-    orangel = np.array([105, 180, 10], np.uint8)
-    orangeh = np.array([120, 255, 255], np.uint8)
-    orange_mask = cv2.inRange(hsvFrame, orangel, orangeh)
+    mask = cv2.inRange(hsvFrame, masks[color][0], masks[color][1])
     if gui:
-        cv2.imshow("mask", orange_mask)
+        cv2.imshow("mask", mask)
 
     # Morphological Transform, Dilation
     # for each color and bitwise_and operator
@@ -72,32 +70,15 @@ while 1:
     # to detect only that particular color
     kernal = np.ones((5, 5), "uint8")
 
-    # For red color
-    red_mask = cv2.dilate(red_mask, kernal)
-    res_red = cv2.bitwise_and(imageFrame, imageFrame, mask=red_mask)
-
-    # For green color
-    green_mask = cv2.dilate(green_mask, kernal)
-    res_green = cv2.bitwise_and(imageFrame, imageFrame, mask=green_mask)
-
-    # For blue color
-    blue_mask = cv2.dilate(blue_mask, kernal)
-    res_blue = cv2.bitwise_and(imageFrame, imageFrame, mask=blue_mask)
-
-    orange_mask = cv2.dilate(orange_mask, kernal)
+    mask = cv2.dilate(mask, kernal)
     if gui:
-        cv2.imshow("dilated", orange_mask)
-    res_orange = cv2.bitwise_and(imageFrame, imageFrame, mask=orange_mask)
+        cv2.imshow("dilated", mask)
+    res = cv2.bitwise_and(imageFrame, imageFrame, mask=mask)
     if gui:
-        cv2.imshow("res", res_orange)
+        cv2.imshow("res", res)
 
     # Creating contour to track green color
-    contours, hierarchy = cv2.findContours(
-        orange_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
-    )
-
-    # 	print(i)
-    i += 1
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     t = []
     for pic, contour in enumerate(contours):
@@ -120,21 +101,23 @@ while 1:
         oo = np.int0(rect[0])
         cv2.circle(imageFrame, tuple(oo), 3, (0, 255, 0), cv2.FILLED)
         t.append(oo)
-        cv2.putText(
-            imageFrame,
-            "{:.2f}".format(area),
-            tuple(oo),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1.0,
-            (0, 255, 0),
-            2,
-        )
-
-    import itertools
+        if gui:
+            cv2.putText(
+                imageFrame,
+                "{:.2f}".format(area),
+                tuple(oo),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                (0, 255, 0),
+                2,
+            )
+    global misses
+    global acc
 
     for (a, b) in itertools.combinations(t, 2):
         cv2.line(imageFrame, tuple(a), tuple(b), (255, 0, 255), 3)
 
+    dic = None
     if len(t) == 2:
         a = t[0]
         b = t[1]
@@ -147,18 +130,17 @@ while 1:
             "y": mid[1] / imageFrame.shape[0],
             "mean_distance": mean,
         }
-        import json
 
-        print(json.dumps(dic))
-        cv2.putText(
-            imageFrame,
-            "{:.2f}".format(mean),
-            tuple(np.int0(mid)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1.0,
-            (0, 0, 255),
-            4,
-        )
+        if gui:
+            cv2.putText(
+                imageFrame,
+                "{:.2f}".format(mean),
+                tuple(np.int0(mid)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                (0, 0, 255),
+                4,
+            )
     else:
         misses += 1
 
@@ -168,16 +150,39 @@ while 1:
     if len(acc) >= 20:
         acc.pop(0)
 
-    # 			x, y, w, h = cv2.boundingRect(contour)
-    # 			imageFrame = cv2.rectangle(imageFrame, (x, y),
-    # 									(x + w, y + h),
-    # 									(0, 255, 0), 2)
-
-    # Program Termination
     if gui:
         cv2.imshow("colour", imageFrame)
         cv2.setMouseCallback("colour", mouseRGB)
         if cv2.waitKey(10) & 0xFF == ord("q"):
             cap.release()
             cv2.destroyAllWindows()
-            break
+            raise Exception("Close program")
+
+    return dic
+
+
+def main():
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(description="Process some integers.")
+    parser.add_argument("--camera", default=0, help="camera id", type=int)
+    parser.add_argument(
+        "--color",
+        default="blue",
+        help="color ({})".format(list(masks.keys())),
+        type=str,
+    )
+    parser.add_argument("--gui", action="store_true", help="enable gui")
+    args = parser.parse_args()
+
+    camera = cv2.VideoCapture(args.camera)
+
+    while 1:
+        dic = runonce(camera, args.gui, args.color)
+        if dic:
+            print(json.dumps(dic))
+
+
+if __name__ == "__main__":
+    main()
