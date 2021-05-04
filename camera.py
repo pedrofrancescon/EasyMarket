@@ -5,7 +5,8 @@
 import itertools
 import numpy as np
 import cv2
-
+import json
+import threading
 
 def mouseRGB(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:  # checks mouse left button down condition
@@ -13,10 +14,9 @@ def mouseRGB(event, x, y, flags, param):
         print("colors: ", colors)
         print("Coordinates of pixel: X: ", x, "Y: ", y)
 
-
-# Capturing video through camera
 misses = 0
 acc = []
+
 
 masks = {
     # Set range for red color and
@@ -26,14 +26,10 @@ masks = {
         np.array([180, 255, 255], np.uint8),
     ],
     "green": [
-        # Set range for green color and
-        # define mask
         np.array([25, 52, 72], np.uint8),
         np.array([102, 255, 255], np.uint8),
     ],
     "blue2": [
-        # Set range for blue color and
-        # define mask
         np.array([94, 80, 2], np.uint8),
         np.array([120, 255, 255], np.uint8),
     ],
@@ -43,12 +39,52 @@ masks = {
     ],
 }
 
-# Start a while loop
-
-
+gmask = masks['blue']
 kk = 0
 
-def runonce(camera, gui=True, color="blue", save=None):
+
+class KeyboardThread(threading.Thread):
+    daemon = True
+    def __init__(self, input_cbk = None, name='input-thread'):
+        self.daemon = True
+        self.input_cbk = input_cbk
+        super(KeyboardThread, self).__init__(name=name)
+        self.start()
+    def run(self):
+        while True:
+            self.input_cbk(input()) #waits to get input + Return
+
+def update_mask_input(inp):
+
+    def convert(o):
+        return np.array([
+            int((o['h']/360.0)*255),
+            int(o['s']*255),
+            int(o['v']*255),
+        ], np.uint8)
+    
+    #evaluate the keyboard input
+    l = json.loads(inp)
+    low = l.get('low')
+    high = l.get('high')
+    if low:
+        gmask[0] = np.array([
+            int((low['h']/360.0)*255),
+            int(low['s']*255),
+            int(low['v']*255),
+        ], np.uint8)
+    if high:
+        gmask[1] = np.array([
+            int((high['h']/360.0)*255),
+            int(high['s']*255),
+            int(high['v']*255),
+##
+##            255,
+##            255,
+        ], np.uint8)        
+
+
+def runonce(camera, gui=True, save=None):
     global kk
     global hsvFrame
     if save:
@@ -66,7 +102,7 @@ def runonce(camera, gui=True, color="blue", save=None):
     # color space
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV)
 
-    mask = cv2.inRange(hsvFrame, masks[color][0], masks[color][1])
+    mask = cv2.inRange(hsvFrame, gmask[0], gmask[1])
     if gui:
         cv2.imshow("mask", mask)
     if save:
@@ -175,7 +211,6 @@ def runonce(camera, gui=True, color="blue", save=None):
 
 def main():
     import argparse
-    import json
 
     parser = argparse.ArgumentParser(description="Process some integers.")
     parser.add_argument("--camera", default=0, help="camera id", type=int)
@@ -196,10 +231,20 @@ def main():
 
     camera = cv2.VideoCapture(args.camera)
 
+    
+    try:
+        mask = masks[args.color]
+    except KeyError:
+        mask = masks["blue"]
+
+    kthread = KeyboardThread(update_mask_input)
+
     while 1:
-        dic = runonce(camera, args.gui, args.color, args.save)
+        dic = runonce(camera, args.gui, args.save)
         if dic:
             print(json.dumps(dic))
+        if not kthread.is_alive():
+            raise Exception("terminal")
 
 
 if __name__ == "__main__":
