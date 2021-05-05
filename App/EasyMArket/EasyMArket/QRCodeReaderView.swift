@@ -54,6 +54,7 @@ public struct CodeScannerView: UIViewControllerRepresentable {
         }
         
         func found(code: String) {
+            QRCode.qrcodestring = code
             lastTime = Date()
             AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
             parent.completion(.success(code))

@@ -50,6 +50,7 @@ struct CartView: View {
                     
                 }.onAppear
                     {
+                    
                         apiCall().getProducts { (products) in
                             self.products = products
                         }

@@ -20,7 +20,7 @@ struct StartPurchaseView: View {
 
             Spacer()
             
-            NavigationLink(destination: CodeScannerView(codeTypes: [.qr]){result in }) {
+            NavigationLink(destination: /*CodeScannerView(codeTypes: [.qr]){result in })*/ScannerView()) {
                     Text("Escanear QR")
                         .buttonStyle(PlainButtonStyle())
                         .font(.headline)
