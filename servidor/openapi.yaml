@@ -219,7 +219,15 @@ paths:
                   example: 4748967312
       responses:
         "200":
-          description: "OK"
+          description: "payment completed"
+          content:
+            application/json:
+              schema:
+                type: integer
+                example: 790
+                title: Total
+        "204":
+          description: "payment aborted"
         "402":
           description: "Payment failure"
         "403":

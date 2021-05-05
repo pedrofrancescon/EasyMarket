@@ -134,7 +134,15 @@ paths:
               type: object
       responses:
         "200":
-          description: OK
+          content:
+            application/json:
+              schema:
+                example: 790
+                title: Total
+                type: integer
+          description: payment completed
+        "204":
+          description: payment aborted
         "402":
           description: Payment failure
         "403":

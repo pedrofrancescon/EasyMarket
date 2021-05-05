@@ -18,7 +18,7 @@ def app_end_purchase(user, payment_data_req=None):  # noqa: E501
     :param payment_data_req: 
     :type payment_data_req: dict | bytes
 
-    :rtype: None
+    :rtype: int
     """
     if connexion.request.is_json:
         payment_data_req = PaymentDataReq.from_dict(connexion.request.get_json())  # noqa: E501
@@ -26,9 +26,16 @@ def app_end_purchase(user, payment_data_req=None):  # noqa: E501
     if not purchase:
         return "no purchase", 404
     print("pay: " + str(payment_data_req.payment))
-    db.delete(purchase)
-    db.commit()
-    return 'ok'
+    if payment_data_req.payment:
+      purchase_items = dbm.ItemPurchase.query.join(dbm.Item).filter(dbm.ItemPurchase.purchase_id == purchase.id).filter(dbm.ItemPurchase.item_rfid_code == dbm.Item.rfid_code).all()
+      total = sum([pi.item.price * pi.amount for pi in purchase_items])
+      db.delete(purchase)
+      db.commit()
+      return total, 200
+    else:
+      db.delete(purchase)
+      db.commit()
+      return 'purchase aborted', 204
 
 
 def get_current_purchase(user):  # noqa: E501
@@ -45,6 +52,8 @@ def get_current_purchase(user):  # noqa: E501
     if not purchase:
         return "no purchase", 404
     purchase_items = dbm.ItemPurchase.query.join(dbm.Item).filter(dbm.ItemPurchase.purchase_id == purchase.id).filter(dbm.ItemPurchase.item_rfid_code == dbm.Item.rfid_code).all()
+    print(purchase_items)
+    print(list(purchase_items))
     return [PurchaseItem(name=pi.item.name, price=pi.item.price, amount=pi.amount) for pi in purchase_items]
 
 
