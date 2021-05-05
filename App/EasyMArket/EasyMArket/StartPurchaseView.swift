@@ -48,7 +48,7 @@ struct StartPurchaseView: View {
                         .shadow(radius: 10.0, x: 0, y: 10)
                         .padding()
                         .onTapGesture {
-                            apiCall().startPurchase()
+                            //apiCall().startPurchase()
                             self.scanner = 2
                         }
         
