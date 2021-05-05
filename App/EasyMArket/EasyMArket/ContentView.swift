@@ -45,7 +45,7 @@ struct ContentView: View {
                         }.padding([.leading, .trailing], 27.5)
                         
             
-                NavigationLink(destination: CartView(), tag: 1, selection: $taped) {
+                NavigationLink(destination: StartPurchaseView(), tag: 1, selection: $taped) {
             }
                     Text("Entrar")
                         .buttonStyle(PlainButtonStyle())
