@@ -88,6 +88,9 @@ def start_purchase(user, purchase_start_req=None):  # noqa: E501
     """
     if connexion.request.is_json:
         purchase_start_req = PurchaseStartReq.from_dict(connexion.request.get_json())  # noqa: E501
+    purchase = dbm.Purchase.query.filter(dbm.Purchase.client == user).one_or_none()
+    if purchase:
+        return "Purchase already in progress", 409
     purchase = dbm.Purchase(client=user, cart=purchase_start_req.qr_code, vest_type=purchase_start_req.vest_type)
     db.add(purchase)
     db.commit()
