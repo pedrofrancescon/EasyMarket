@@ -230,7 +230,24 @@ def main():
     args = parser.parse_args()
 
     camera = cv2.VideoCapture(args.camera)
+    camera.open(-1)
 
+#   print(camera.set(cv2.CAP_PROP_AUTO_WB, False))
+#   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0))
+#   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0.0))
+#   print(camera.set(cv2.CAP_PROP_GAIN, 20))
+#   import time
+#   time.sleep(2)
+#   print(camera.get(cv2.CAP_PROP_MODE))
+#   print(camera.get(cv2.CAP_PROP_BRIGHTNESS))
+#   print(camera.get(cv2.CAP_PROP_CONTRAST))
+#   print(camera.get(cv2.CAP_PROP_SATURATION))
+#   print(camera.get(cv2.CAP_PROP_HUE))
+#   print(camera.get(cv2.CAP_PROP_GAIN))
+#   print(camera.get(cv2.CAP_PROP_AUTO_WB))
+#   print(camera.get(cv2.CAP_PROP_EXPOSURE))
+#   print(camera.get(cv2.CAP_PROP_TEMPERATURE))
+#   print(camera.get(cv2.CAP_PROP_GAMMA))
     
     try:
         mask = masks[args.color]
