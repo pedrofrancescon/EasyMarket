@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CartView: View {
     @State var products: [Product] = []
+    @State var subtotal: Int = 0
     var body: some View {
         VStack {
             Text("Acompanhe seu carrinho")
@@ -46,10 +47,15 @@ struct CartView: View {
                             .frame(minWidth: 0, maxWidth: 80, minHeight: 0, maxHeight: 200)
                             .padding()
                             .shadow(radius: 10.0, x: 0, y: 10)
+                        
+                    }.onAppear{
+                        subtotal = subtotal+(product.amount*product.price)
                     }
-                    
-                }.onAppear
+                    //subtotal = subtotal+(product.amount*product.price)
+                }
+                .onAppear
                     {
+                    
                         apiCall().getProducts { (products) in
                             self.products = products
                         }
@@ -62,7 +68,7 @@ struct CartView: View {
                         .frame(minWidth: 0, maxWidth: 200, minHeight: 0, maxHeight: 20)
                         .padding()
                         .padding(.trailing, 180)
-                    Text("R$ 8,00")
+                    Text("R$ "+String(format: "%.2f", Float(subtotal/100)))
                         .frame(minWidth: 0, maxWidth: 80, minHeight: 0, maxHeight: 20)
                         .padding()
 

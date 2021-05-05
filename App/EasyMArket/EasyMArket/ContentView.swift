@@ -11,6 +11,9 @@ import SwiftUI
 struct ContentView: View {
     @State private var email = ""
     @State private var password = ""
+    @State private var taped: Int? = 0
+    @State var products: [Product] = []
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -42,7 +45,8 @@ struct ContentView: View {
                         }.padding([.leading, .trailing], 27.5)
                         
             
-            NavigationLink(destination: CartView()) {
+                NavigationLink(destination: StartPurchaseView(), tag: 1, selection: $taped) {
+            }
                     Text("Entrar")
                         .buttonStyle(PlainButtonStyle())
                         .font(.headline)
@@ -52,19 +56,32 @@ struct ContentView: View {
                         .background(Color.green)
                         .cornerRadius(10.0)
                         .shadow(radius: 10.0, x: 0, y: 10)
-            }.padding()
+                        .padding()
+                        .onTapGesture {
+                            //let username = "pfcittolin@gmail.com"
+                            //let password = "123456"
+                            let loginString = String(format: "%@:%@", email, password)
+                            let loginData = loginString.data(using: String.Encoding.utf8)!
+                            let base64LoginString = loginData.base64EncodedString()
+                            LoginSettings.loginBase64 = base64LoginString
+                            
+                            apiCall().getProducts { (products) in
+                                self.products = products
+                                self.taped = 1
+                            }
+                        }
                         
                         Spacer()
                         HStack(spacing: 0) {
                             Text("Don't have an account? ")
-                            Button(action: {}) {
+                            Button(action: {
+                            }) {
                                 Text("Sign Up")
                                     .foregroundColor(.black)
                             }
                         }
                     }
                     .background(Color.white)
-                    
             
         }
     }
