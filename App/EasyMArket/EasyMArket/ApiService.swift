@@ -37,7 +37,7 @@ class apiCall {
         request.setValue("Basic \(LoginSettings.loginBase64)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
-        let qrcode = String(Double.random(in: 1.0000...3.1415))
+        let qrcode = "cart1"
         let body = [
             "VestType": "blue",
             "qr_code": qrcode
