@@ -77,18 +77,19 @@ def update_mask_input(inp):
     #evaluate the keyboard input
     l = json.loads(inp)
     low = l.get('low')
-    minRect = l.get('minRect')
-    minHull = l.get('minHull')
+    lminRect = l.get('minRect')
+    lminHull = l.get('minHull')
+    lminArea = l.get('minArea')
     high = l.get('high')
-    if minRect is not None:
-        global minRect
-        minRect = minRect
-    if minHull is not None:
-        global minHull
-        minHull = minHull
-    if minArea is not None:
-        global minArea
-        minArea = minArea
+    global minRect
+    global minHull
+    global minArea
+    if lminRect is not None:
+        minRect = lminRect
+    if lminHull is not None:
+        minHull = lminHull
+    if lminArea is not None:
+        minArea = lminArea
     if low:
         gmask[0] = np.array([
             int((low['h']/360.0)*255),
