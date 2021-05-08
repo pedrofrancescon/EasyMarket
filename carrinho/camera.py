@@ -294,9 +294,8 @@ def main():
     while 1:
         now = time.perf_counter()
         dic = runonce(camera, args.gui, args.save)
-        if dic:
-            print(json.dumps(dic))
         now = perftime("total time", now)
+        print(json.dumps(dic))
         now = perftime("print", now)
         if not kthread.is_alive():
             raise Exception("terminal")
