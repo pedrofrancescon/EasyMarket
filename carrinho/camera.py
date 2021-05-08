@@ -3,8 +3,10 @@
 from __future__ import print_function
 import sys
 
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
 
 # Python code for Multiple Color Detection
 
@@ -15,11 +17,13 @@ import cv2
 import json
 import threading
 
+
 def mouseRGB(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:  # checks mouse left button down condition
         colors = hsvFrame[y, x]
         print("colors: ", colors)
         print("Coordinates of pixel: X: ", x, "Y: ", y)
+
 
 ACC_LEN = 5
 MAX_MISSES = 3
@@ -47,7 +51,7 @@ masks = {
     ],
 }
 
-gmask = masks['blue']
+gmask = masks["blue"]
 minRect = 0.7
 minHull = 0.8
 minArea = 200
@@ -56,31 +60,36 @@ kk = 0
 
 class KeyboardThread(threading.Thread):
     daemon = True
-    def __init__(self, input_cbk = None, name='input-thread'):
+
+    def __init__(self, input_cbk=None, name="input-thread"):
         self.daemon = True
         self.input_cbk = input_cbk
         super(KeyboardThread, self).__init__(name=name)
         self.start()
+
     def run(self):
         while True:
-            self.input_cbk(input()) #waits to get input + Return
+            self.input_cbk(input())  # waits to get input + Return
+
 
 def update_mask_input(inp):
-
     def convert(o):
-        return np.array([
-            int((o['h']/360.0)*255),
-            int(o['s']*255),
-            int(o['v']*255),
-        ], np.uint8)
-    
-    #evaluate the keyboard input
+        return np.array(
+            [
+                int((o["h"] / 360.0) * 255),
+                int(o["s"] * 255),
+                int(o["v"] * 255),
+            ],
+            np.uint8,
+        )
+
+    # evaluate the keyboard input
     l = json.loads(inp)
-    low = l.get('low')
-    lminRect = l.get('minRect')
-    lminHull = l.get('minHull')
-    lminArea = l.get('minArea')
-    high = l.get('high')
+    low = l.get("low")
+    lminRect = l.get("minRect")
+    lminHull = l.get("minHull")
+    lminArea = l.get("minArea")
+    high = l.get("high")
     global minRect
     global minHull
     global minArea
@@ -91,28 +100,35 @@ def update_mask_input(inp):
     if lminArea is not None:
         minArea = lminArea
     if low:
-        gmask[0] = np.array([
-            int((low['h']/360.0)*255),
-            int(low['s']*255),
-            int(low['v']*255),
-        ], np.uint8)
+        gmask[0] = np.array(
+            [
+                int((low["h"] / 360.0) * 255),
+                int(low["s"] * 255),
+                int(low["v"] * 255),
+            ],
+            np.uint8,
+        )
     if high:
-        gmask[1] = np.array([
-            int((high['h']/360.0)*255),
-            int(high['s']*255),
-            int(high['v']*255),
-##
-##            255,
-##            255,
-        ], np.uint8)        
+        gmask[1] = np.array(
+            [
+                int((high["h"] / 360.0) * 255),
+                int(high["s"] * 255),
+                int(high["v"] * 255),
+                ##
+                ##            255,
+                ##            255,
+            ],
+            np.uint8,
+        )
 
 
 def perftime(pre, tim):
     if not tim:
         tim = time.perf_counter()
     now = time.perf_counter()
-    eprint("{}: {}".format(pre, now-tim))
+    eprint("{}: {}".format(pre, now - tim))
     return now
+
 
 def runonce(camera, gui=True, save=None):
     global kk
@@ -229,28 +245,27 @@ def runonce(camera, gui=True, save=None):
     def wma(acc, v):
         weight_sum = 0
         value_sum = 0
-        for weight, value in  enumerate(acc):
+        for weight, value in enumerate(acc):
             if value is None:
-                continue    
+                continue
             weight += 1
             weight_sum += weight
             value_sum += value[v]
-        return value_sum/weight_sum
-        
+        return value_sum / weight_sum
 
     if acc.count(None) > MAX_MISSES:
         ret = {
-           'now': dic,
-           'x': None,
-           'y': None,
-           'dist': None,
+            "now": dic,
+            "x": None,
+            "y": None,
+            "dist": None,
         }
     else:
         ret = {
-           'now': dic,
-           'x': wma(acc, 'x'),
-           'y': wma(acc, 'y'),
-           'dist': wma(acc, 'dist'),
+            "now": dic,
+            "x": wma(acc, "x"),
+            "y": wma(acc, "y"),
+            "dist": wma(acc, "dist"),
         }
 
     now = perftime("other", now)
@@ -291,23 +306,23 @@ def main():
     camera = cv2.VideoCapture(args.camera)
     camera.open(-1)
 
-#   print(camera.set(cv2.CAP_PROP_AUTO_WB, False))
-#   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0))
-#   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0.0))
-#   print(camera.set(cv2.CAP_PROP_GAIN, 20))
-#   import time
-#   time.sleep(2)
-#   print(camera.get(cv2.CAP_PROP_MODE))
-#   print(camera.get(cv2.CAP_PROP_BRIGHTNESS))
-#   print(camera.get(cv2.CAP_PROP_CONTRAST))
-#   print(camera.get(cv2.CAP_PROP_SATURATION))
-#   print(camera.get(cv2.CAP_PROP_HUE))
-#   print(camera.get(cv2.CAP_PROP_GAIN))
-#   print(camera.get(cv2.CAP_PROP_AUTO_WB))
-#   print(camera.get(cv2.CAP_PROP_EXPOSURE))
-#   print(camera.get(cv2.CAP_PROP_TEMPERATURE))
-#   print(camera.get(cv2.CAP_PROP_GAMMA))
-    
+    #   print(camera.set(cv2.CAP_PROP_AUTO_WB, False))
+    #   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0))
+    #   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0.0))
+    #   print(camera.set(cv2.CAP_PROP_GAIN, 20))
+    #   import time
+    #   time.sleep(2)
+    #   print(camera.get(cv2.CAP_PROP_MODE))
+    #   print(camera.get(cv2.CAP_PROP_BRIGHTNESS))
+    #   print(camera.get(cv2.CAP_PROP_CONTRAST))
+    #   print(camera.get(cv2.CAP_PROP_SATURATION))
+    #   print(camera.get(cv2.CAP_PROP_HUE))
+    #   print(camera.get(cv2.CAP_PROP_GAIN))
+    #   print(camera.get(cv2.CAP_PROP_AUTO_WB))
+    #   print(camera.get(cv2.CAP_PROP_EXPOSURE))
+    #   print(camera.get(cv2.CAP_PROP_TEMPERATURE))
+    #   print(camera.get(cv2.CAP_PROP_GAMMA))
+
     try:
         mask = masks[args.color]
     except KeyError:
