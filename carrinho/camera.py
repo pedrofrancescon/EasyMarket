@@ -96,26 +96,26 @@ def update_mask_input(inp):
         if key == "low":
             config["low"] = np.array(
                 [
-                    int((low["h"] / 360.0) * 255),
-                    int(low["s"] * 255),
-                    int(low["v"] * 255),
+                    int((value["h"] / 360.0) * 255),
+                    int(value["s"] * 255),
+                    int(value["v"] * 255),
                 ],
                 np.uint8,
             )
-        if key == "high":
+        elif key == "high":
             config["high"] = np.array(
                 [
-                    int((high["h"] / 360.0) * 255),
-                    int(high["s"] * 255),
-                    int(high["v"] * 255),
-                    ##
-                    ##            255,
-                    ##            255,
+                    int((value["h"] / 360.0) * 255),
+                    int(value["s"] * 255),
+                    int(value["v"] * 255),
                 ],
                 np.uint8,
             )
-        config[key] = value
-    print(config, file=sys.stderr)
+        else:
+            config[key] = value
+
+
+#   print(config, file=sys.stderr)
 
 
 def perftime(pre, tim):
@@ -248,7 +248,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         )
     ):
         a = t[0][0]
-        b = t[1][1]
+        b = t[1][0]
         dist = cv2.norm(b - a, cv2.NORM_L2)
         mid = a + (b - a) / 2
         dic = {
@@ -371,6 +371,10 @@ def main():
         dic = processImage(imageFrame, args.gui, args.save)
         now = perftime("total time", now)
         print(json.dumps(dic))
+        #       if dic['now']:
+        #           print("now: x: {:6.2f}, y: {:6.2f}, dist: {:6.2f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']))
+        #       else:
+        #           print(None)
         now = perftime("print", now)
         if not kthread.is_alive():
             raise Exception("terminal")
