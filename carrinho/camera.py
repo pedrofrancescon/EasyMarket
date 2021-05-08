@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 
+from __future__ import print_function
+import sys
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 # Python code for Multiple Color Detection
 
+import time
 import itertools
 import numpy as np
 import cv2
@@ -84,6 +91,13 @@ def update_mask_input(inp):
         ], np.uint8)        
 
 
+def perftime(pre, tim):
+    if not tim:
+        tim = time.perf_counter()
+    now = time.perf_counter()
+    eprint("{}: {}".format(pre, now-tim))
+    return now
+
 def runonce(camera, gui=True, save=None):
     global kk
     global hsvFrame
@@ -91,7 +105,9 @@ def runonce(camera, gui=True, save=None):
         kk = (kk + 1) % save
     # Reading the video from the
     # camera in image frames
+    now = perftime("start", None)
     ret, imageFrame = camera.read()
+    now = perftime("read", now)
     if not ret:
         print(imageFrame)
         raise Exception("can't read camera: {} {}".format(ret, camera))
@@ -102,7 +118,9 @@ def runonce(camera, gui=True, save=None):
     # color space
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV)
 
+    now = perftime("hsvFrame", now)
     mask = cv2.inRange(hsvFrame, gmask[0], gmask[1])
+    now = perftime("inRange", now)
     if gui:
         cv2.imshow("mask", mask)
     if save:
@@ -115,11 +133,13 @@ def runonce(camera, gui=True, save=None):
     kernal = np.ones((5, 5), "uint8")
 
     mask = cv2.dilate(mask, kernal)
+    now = perftime("dilate", now)
     if gui:
         cv2.imshow("dilated", mask)
     if save:
         cv2.imwrite("dilated-{}.png".format(kk), mask)
     res = cv2.bitwise_and(imageFrame, imageFrame, mask=mask)
+    now = perftime("and", now)
     if gui:
         cv2.imshow("res", res)
     if save:
@@ -128,6 +148,7 @@ def runonce(camera, gui=True, save=None):
     # Creating contour to track green color
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
+    now = perftime("contours", now)
     t = []
     for pic, contour in enumerate(contours):
         # 		if cv2.isContourConvex(contour):
@@ -158,12 +179,14 @@ def runonce(camera, gui=True, save=None):
             (0, 255, 0),
             2,
         )
+    now = perftime("contour analysis", now)
     global misses
     global acc
 
     for (a, b) in itertools.combinations(t, 2):
         cv2.line(imageFrame, tuple(a), tuple(b), (255, 0, 255), 3)
 
+    now = perftime("lines", now)
     dic = None
     if len(t) == 2:
         a = t[0]
@@ -196,6 +219,7 @@ def runonce(camera, gui=True, save=None):
     if len(acc) >= 20:
         acc.pop(0)
 
+    now = perftime("other", now)
     if save:
         cv2.imwrite("colour-{}.png".format(kk), imageFrame)
     if gui:
@@ -206,6 +230,7 @@ def runonce(camera, gui=True, save=None):
             cv2.destroyAllWindows()
             raise Exception("Close program")
 
+    now = perftime("end", now)
     return dic
 
 
@@ -257,9 +282,12 @@ def main():
     kthread = KeyboardThread(update_mask_input)
 
     while 1:
+        now = time.perf_counter()
         dic = runonce(camera, args.gui, args.save)
         if dic:
             print(json.dumps(dic))
+        now = perftime("total time", now)
+        now = perftime("print", now)
         if not kthread.is_alive():
             raise Exception("terminal")
 
