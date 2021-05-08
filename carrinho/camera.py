@@ -21,8 +21,9 @@ def mouseRGB(event, x, y, flags, param):
         print("colors: ", colors)
         print("Coordinates of pixel: X: ", x, "Y: ", y)
 
-misses = 0
-acc = []
+ACC_LEN = 5
+MAX_MISSES = 3
+acc = [None] * ACC_LEN
 
 
 masks = {
@@ -194,44 +195,62 @@ def runonce(camera, gui=True, save=None):
             2,
         )
     now = perftime("contour analysis", now)
-    global misses
     global acc
 
     for (a, b) in itertools.combinations(t, 2):
         cv2.line(imageFrame, tuple(a), tuple(b), (255, 0, 255), 3)
 
     now = perftime("lines", now)
+    acc.pop(0)
     dic = None
     if len(t) == 2:
         a = t[0]
         b = t[1]
         dist = cv2.norm(b - a, cv2.NORM_L2)
         mid = a + (b - a) / 2
-        acc.append(dist)
-        mean = sum(acc) / len(acc)
         dic = {
             "x": mid[0] / imageFrame.shape[1],
             "y": mid[1] / imageFrame.shape[0],
-            "mean_distance": mean,
+            "dist": dist,
         }
 
         cv2.putText(
             imageFrame,
-            "{:.2f}".format(mean),
+            "{:.2f}".format(dist),
             tuple(np.int0(mid)),
             cv2.FONT_HERSHEY_SIMPLEX,
             1.0,
             (0, 0, 255),
             4,
         )
+    acc.append(dic)
+
+    def wma(acc, v):
+        weight_sum = 0
+        value_sum = 0
+        for weight, value in  enumerate(acc):
+            if value is None:
+                continue    
+            weight += 1
+            weight_sum += weight
+            value_sum += value[v]
+        return value_sum/weight_sum
+        
+
+    if acc.count(None) > MAX_MISSES:
+        ret = {
+           'now': dic,
+           'x': None,
+           'y': None,
+           'dist': None,
+        }
     else:
-        misses += 1
-
-    if misses >= 5:
-        acc = []
-
-    if len(acc) >= 20:
-        acc.pop(0)
+        ret = {
+           'now': dic,
+           'x': wma(acc, 'x'),
+           'y': wma(acc, 'y'),
+           'dist': wma(acc, 'dist'),
+        }
 
     now = perftime("other", now)
     if save:
@@ -245,7 +264,7 @@ def runonce(camera, gui=True, save=None):
             raise Exception("Close program")
 
     now = perftime("end", now)
-    return dic
+    return ret
 
 
 def main():
