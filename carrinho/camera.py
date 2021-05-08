@@ -18,6 +18,7 @@ import numpy as np
 import cv2
 import json
 import threading
+import collections
 
 
 def mouseRGB(event, x, y, flags, param):
@@ -149,7 +150,7 @@ def readCamera(camera):
     return imageFrame
 
 
-currentImageFrame = None
+currentImageFrame = collections.deque(maxlen=1)
 
 
 class CameraThread(threading.Thread):
@@ -163,8 +164,7 @@ class CameraThread(threading.Thread):
 
     def run(self):
         while True:
-            global currentImageFrame
-            currentImageFrame = readCamera(self.camera)
+            currentImageFrame.append(readCamera(self.camera))
 
 
 def processImage(imageFrame, gui=True, save=None, savefinal=True):
@@ -339,8 +339,7 @@ def main():
 
     camera = cv2.VideoCapture(args.camera)
     camera.open(-1)
-    global currentImageFrame
-    currentImageFrame = readCamera(camera)
+    currentImageFrame.append(readCamera(camera))
 
     #   print(camera.set(cv2.CAP_PROP_AUTO_WB, False))
     #   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0))
@@ -369,7 +368,12 @@ def main():
 
     while 1:
         now = time.perf_counter()
-        dic = processImage(currentImageFrame, args.gui, args.save)
+        try:
+            imageFrame = currentImageFrame.pop()
+        except IndexError:
+            time.sleep(0.005)
+            continue
+        dic = processImage(imageFrame, args.gui, args.save)
         now = perftime("total time", now)
         print(json.dumps(dic))
         now = perftime("print", now)
