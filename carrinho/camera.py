@@ -318,6 +318,7 @@ def main():
         type=str,
     )
     parser.add_argument("--gui", action="store_true", help="enable gui")
+    parser.add_argument("--nomotor", action="store_true", help="disable motor")
     parser.add_argument("--time", action="store_true", help="enable time logging")
     parser.add_argument(
         "--savefinal", action="store_true", help="enable saving colour image(slow)"
@@ -361,6 +362,12 @@ def main():
     kthread = KeyboardThread(update_mask_input)
     cameraThread = CameraThread(camera)
 
+    if not args.nomotor:
+        from . import motor
+
+        motor.init_motor_pins()
+        motor.set_motor(motor.MotorOrders.STOP)
+
     while 1:
         now = time.perf_counter()
         try:
@@ -371,6 +378,9 @@ def main():
         dic = processImage(imageFrame, args.gui, args.save)
         now = perftime("total time", now)
         print(json.dumps(dic))
+        if not args.nomotor:
+            nstate = motor.desired_motor_state_dist(x=dic["x"], dist=dic["dist"])
+            motor.set_motor(nstate)
         #       if dic['now']:
         #           print("now: x: {:6.2f}, y: {:6.2f}, dist: {:6.2f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']))
         #       else:
