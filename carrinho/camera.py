@@ -47,6 +47,8 @@ masks = {
 }
 
 gmask = masks['blue']
+minRect = 0.7
+minHull = 0.8
 kk = 0
 
 
@@ -73,7 +75,15 @@ def update_mask_input(inp):
     #evaluate the keyboard input
     l = json.loads(inp)
     low = l.get('low')
+    minRect = l.get('minRect')
+    minHull = l.get('minHull')
     high = l.get('high')
+    if minRect is not None:
+        global minRect
+        minRect = minRect
+    if minHull is not None:
+        global minHull
+        minHull = minHull
     if low:
         gmask[0] = np.array([
             int((low['h']/360.0)*255),
@@ -160,11 +170,11 @@ def runonce(camera, gui=True, save=None):
         box = cv2.boxPoints(rect)
         box = np.int0(box)
         rectArea = rect[1][0] * rect[1][1]
-        if area / rectArea < 0.7:
+        if area / rectArea < minRect:
             continue
         hull = cv2.convexHull(contour)
         hullArea = cv2.contourArea(hull)
-        if area / hullArea < 0.8:
+        if area / hullArea < minHull:
             continue
         cv2.drawContours(imageFrame, [box], 0, (0, 0, 255), 2)
         oo = np.int0(rect[0])
