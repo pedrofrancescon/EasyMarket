@@ -28,15 +28,6 @@ def mouseRGB(event, x, y, flags, param):
         print("Coordinates of pixel: X: ", x, "Y: ", y)
 
 
-accLen = 5
-minWeight = 4
-acc = []
-minRect = 0.7
-minHull = 0.8
-minArea = 200
-kk = 0
-
-
 masks = {
     # Set range for red color and
     # define mask
@@ -58,7 +49,20 @@ masks = {
     ],
 }
 
-gmask = masks["blue"]
+acc = []
+kk = 0
+
+config = dict(
+    accLen=8,
+    minWeight=10,
+    minRect=0.7,
+    minHull=0.8,
+    minArea=250,
+    max01AreaRatio=1.75,
+    min12AreaRatio=2,
+    low=masks["blue"][0],
+    high=masks["blue"][1],
+)
 
 
 class KeyboardThread(threading.Thread):
@@ -88,49 +92,30 @@ def update_mask_input(inp):
 
     # evaluate the keyboard input
     l = json.loads(inp)
-    low = l.get("low")
-    high = l.get("high")
-    lminRect = l.get("minRect")
-    lminHull = l.get("minHull")
-    lminArea = l.get("minArea")
-    laccLen = l.get("accLen")
-    lminWeight = l.get("minWeight")
-    global minRect
-    global minHull
-    global minArea
-    global accLen
-    global maxMisses
-    if lminRect is not None:
-        minRect = lminRect
-    if lminHull is not None:
-        minHull = lminHull
-    if lminArea is not None:
-        minArea = lminArea
-    if laccLen is not None:
-        accLen = laccLen
-    if lminWeight is not None:
-        minWeight = lminWeight
-    if low:
-        gmask[0] = np.array(
-            [
-                int((low["h"] / 360.0) * 255),
-                int(low["s"] * 255),
-                int(low["v"] * 255),
-            ],
-            np.uint8,
-        )
-    if high:
-        gmask[1] = np.array(
-            [
-                int((high["h"] / 360.0) * 255),
-                int(high["s"] * 255),
-                int(high["v"] * 255),
-                ##
-                ##            255,
-                ##            255,
-            ],
-            np.uint8,
-        )
+    for key, value in l.items():
+        if key == "low":
+            config["low"] = np.array(
+                [
+                    int((low["h"] / 360.0) * 255),
+                    int(low["s"] * 255),
+                    int(low["v"] * 255),
+                ],
+                np.uint8,
+            )
+        if key == "high":
+            config["high"] = np.array(
+                [
+                    int((high["h"] / 360.0) * 255),
+                    int(high["s"] * 255),
+                    int(high["v"] * 255),
+                    ##
+                    ##            255,
+                    ##            255,
+                ],
+                np.uint8,
+            )
+        config[key] = value
+    print(config, file=sys.stderr)
 
 
 def perftime(pre, tim):
@@ -183,7 +168,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV)
 
     now = perftime("hsvFrame", now)
-    mask = cv2.inRange(hsvFrame, gmask[0], gmask[1])
+    mask = cv2.inRange(hsvFrame, config["low"], config["high"])
     now = perftime("inRange", now)
     if gui:
         cv2.imshow("mask", mask)
@@ -218,22 +203,23 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         # 		if cv2.isContourConvex(contour):
         # 			continue
         area = cv2.contourArea(contour)
-        if area < minArea:
+        if area < config["minArea"]:
             continue
         rect = cv2.minAreaRect(contour)
         box = cv2.boxPoints(rect)
         box = np.int0(box)
         rectArea = rect[1][0] * rect[1][1]
-        if area / rectArea < minRect:
+        # TODO: checksquareness
+        if area / rectArea < config["minRect"]:
             continue
         hull = cv2.convexHull(contour)
         hullArea = cv2.contourArea(hull)
-        if area / hullArea < minHull:
+        if area / hullArea < config["minHull"]:
             continue
         cv2.drawContours(imageFrame, [box], 0, (0, 0, 255), 2)
         oo = np.int0(rect[0])
         cv2.circle(imageFrame, tuple(oo), 3, (0, 255, 0), cv2.FILLED)
-        t.append(oo)
+        t.append((oo, area))
         cv2.putText(
             imageFrame,
             "{:.2f}".format(area),
@@ -247,13 +233,22 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     global acc
 
     for (a, b) in itertools.combinations(t, 2):
-        cv2.line(imageFrame, tuple(a), tuple(b), (255, 0, 255), 3)
+        cv2.line(imageFrame, tuple(a[0]), tuple(b[0]), (255, 0, 255), 3)
 
     now = perftime("lines", now)
     dic = None
-    if len(t) == 2:
-        a = t[0]
-        b = t[1]
+
+    t = sorted(t, reverse=True, key=lambda x: x[1])
+
+    if len(t) >= 2 and (
+        (len(t) == 2)
+        or (
+            (t[0][1] / t[1][1] < config["max01AreaRatio"])
+            and (t[1][1] / t[2][1] > config["min12AreaRatio"])
+        )
+    ):
+        a = t[0][0]
+        b = t[1][1]
         dist = cv2.norm(b - a, cv2.NORM_L2)
         mid = a + (b - a) / 2
         dic = {
@@ -272,7 +267,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
             4,
         )
     acc.append(dic)
-    if len(acc) > accLen:
+    if len(acc) > config["accLen"]:
         acc.pop(0)
 
     def wma(acc, v):
@@ -284,7 +279,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
             weight += 1
             weight_sum += weight
             value_sum += value[v]
-        if weight_sum < minWeight:
+        if weight_sum < config["minWeight"]:
             return None
         return value_sum / weight_sum
 
