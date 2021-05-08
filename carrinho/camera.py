@@ -49,6 +49,7 @@ masks = {
 gmask = masks['blue']
 minRect = 0.7
 minHull = 0.8
+minArea = 200
 kk = 0
 
 
@@ -84,6 +85,9 @@ def update_mask_input(inp):
     if minHull is not None:
         global minHull
         minHull = minHull
+    if minArea is not None:
+        global minArea
+        minArea = minArea
     if low:
         gmask[0] = np.array([
             int((low['h']/360.0)*255),
@@ -164,7 +168,7 @@ def runonce(camera, gui=True, save=None):
         # 		if cv2.isContourConvex(contour):
         # 			continue
         area = cv2.contourArea(contour)
-        if area < 200:
+        if area < minArea:
             continue
         rect = cv2.minAreaRect(contour)
         box = cv2.boxPoints(rect)
