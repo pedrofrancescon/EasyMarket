@@ -25,9 +25,13 @@ def mouseRGB(event, x, y, flags, param):
         print("Coordinates of pixel: X: ", x, "Y: ", y)
 
 
-ACC_LEN = 5
-MAX_MISSES = 3
-acc = [None] * ACC_LEN
+accLen = 5
+minWeight = 4
+acc = []
+minRect = 0.7
+minHull = 0.8
+minArea = 200
+kk = 0
 
 
 masks = {
@@ -52,10 +56,6 @@ masks = {
 }
 
 gmask = masks["blue"]
-minRect = 0.7
-minHull = 0.8
-minArea = 200
-kk = 0
 
 
 class KeyboardThread(threading.Thread):
@@ -86,19 +86,27 @@ def update_mask_input(inp):
     # evaluate the keyboard input
     l = json.loads(inp)
     low = l.get("low")
+    high = l.get("high")
     lminRect = l.get("minRect")
     lminHull = l.get("minHull")
     lminArea = l.get("minArea")
-    high = l.get("high")
+    laccLen = l.get("accLen")
+    lminWeight = l.get("minWeight")
     global minRect
     global minHull
     global minArea
+    global accLen
+    global maxMisses
     if lminRect is not None:
         minRect = lminRect
     if lminHull is not None:
         minHull = lminHull
     if lminArea is not None:
         minArea = lminArea
+    if laccLen is not None:
+        accLen = laccLen
+    if lminWeight is not None:
+        minWeight = lminWeight
     if low:
         gmask[0] = np.array(
             [
@@ -218,7 +226,6 @@ def runonce(camera, gui=True, save=None):
         cv2.line(imageFrame, tuple(a), tuple(b), (255, 0, 255), 3)
 
     now = perftime("lines", now)
-    acc.pop(0)
     dic = None
     if len(t) == 2:
         a = t[0]
@@ -241,6 +248,8 @@ def runonce(camera, gui=True, save=None):
             4,
         )
     acc.append(dic)
+    if len(acc) > accLen:
+        acc.pop(0)
 
     def wma(acc, v):
         weight_sum = 0
@@ -251,22 +260,16 @@ def runonce(camera, gui=True, save=None):
             weight += 1
             weight_sum += weight
             value_sum += value[v]
+        if weight_sum < minWeight:
+            return None
         return value_sum / weight_sum
 
-    if acc.count(None) > MAX_MISSES:
-        ret = {
-            "now": dic,
-            "x": None,
-            "y": None,
-            "dist": None,
-        }
-    else:
-        ret = {
-            "now": dic,
-            "x": wma(acc, "x"),
-            "y": wma(acc, "y"),
-            "dist": wma(acc, "dist"),
-        }
+    ret = {
+        "now": dic,
+        "x": wma(acc, "x"),
+        "y": wma(acc, "y"),
+        "dist": wma(acc, "dist"),
+    }
 
     now = perftime("other", now)
     if save:
