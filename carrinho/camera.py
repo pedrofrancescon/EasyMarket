@@ -138,7 +138,34 @@ def perftime(pre, tim):
     return now
 
 
-def runonce(camera, gui=True, save=None):
+def readCamera(camera):
+    now = perftime("startRead", None)
+    ret, imageFrame = camera.read()
+    now = perftime("readCamera", now)
+    if not ret:
+        raise Exception("can't read camera: {} {}".format(ret, camera))
+    return imageFrame
+
+
+currentImageFrame = None
+
+
+class CameraThread(threading.Thread):
+    daemon = True
+
+    def __init__(self, camera, name="camera-thread"):
+        self.daemon = True
+        self.camera = camera
+        super(CameraThread, self).__init__(name=name)
+        self.start()
+
+    def run(self):
+        while True:
+            global currentImageFrame
+            currentImageFrame = readCamera(self.camera)
+
+
+def processImage(imageFrame, gui=True, save=None):
     global kk
     global hsvFrame
     if save:
@@ -146,11 +173,6 @@ def runonce(camera, gui=True, save=None):
     # Reading the video from the
     # camera in image frames
     now = perftime("start", None)
-    ret, imageFrame = camera.read()
-    now = perftime("read", now)
-    if not ret:
-        print(imageFrame)
-        raise Exception("can't read camera: {} {}".format(ret, camera))
 
     # Convert the imageFrame in
     # BGR(RGB color space) to
@@ -308,6 +330,8 @@ def main():
 
     camera = cv2.VideoCapture(args.camera)
     camera.open(-1)
+    global currentImageFrame
+    currentImageFrame = readCamera(camera)
 
     #   print(camera.set(cv2.CAP_PROP_AUTO_WB, False))
     #   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0))
@@ -332,15 +356,18 @@ def main():
         mask = masks["blue"]
 
     kthread = KeyboardThread(update_mask_input)
+    cameraThread = CameraThread(camera)
 
     while 1:
         now = time.perf_counter()
-        dic = runonce(camera, args.gui, args.save)
+        dic = processImage(currentImageFrame, args.gui, args.save)
         now = perftime("total time", now)
         print(json.dumps(dic))
         now = perftime("print", now)
         if not kthread.is_alive():
             raise Exception("terminal")
+        if not cameraThread.is_alive():
+            raise Exception("camera")
 
 
 if __name__ == "__main__":
