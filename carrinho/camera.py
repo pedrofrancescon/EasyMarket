@@ -210,7 +210,10 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         cv2.imwrite("res-{}.png".format(kk), res)
 
     # Creating contour to track green color
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    if int(cv2.__version__[0]) < 4:
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    else:
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     now = perftime("contours", now)
     t = []
@@ -329,7 +332,7 @@ def main():
     )
     parser.add_argument(
         "--save",
-        default=1,
+        default=2,
         help="length of save cycle (0 for no save)",
         type=int,
     )
@@ -369,7 +372,7 @@ def main():
 
     while 1:
         now = time.perf_counter()
-        dic = processImage(currentImageFrame, args.gui, args.save)
+        dic = processImage(currentImageFrame, args.gui, args.save, args.savefinal)
         now = perftime("total time", now)
         print(json.dumps(dic))
         now = perftime("print", now)
