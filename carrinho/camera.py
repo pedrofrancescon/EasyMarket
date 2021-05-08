@@ -3,8 +3,12 @@
 from __future__ import print_function
 import sys
 
+
 def eprint(*args, **kwargs):
+    if not timelog:
+        return
     print(*args, file=sys.stderr, **kwargs)
+
 
 # Python code for Multiple Color Detection
 
@@ -98,7 +102,8 @@ def perftime(pre, tim):
     eprint("{}: {}".format(pre, now-tim))
     return now
 
-def runonce(camera, gui=True, save=None):
+
+def runonce(camera, gui=True, save=None, savefinal=True):
     global kk
     global hsvFrame
     if save:
@@ -220,7 +225,7 @@ def runonce(camera, gui=True, save=None):
         acc.pop(0)
 
     now = perftime("other", now)
-    if save:
+    if save and savefinal:
         cv2.imwrite("colour-{}.png".format(kk), imageFrame)
     if gui:
         cv2.imshow("colour", imageFrame)
@@ -235,6 +240,7 @@ def runonce(camera, gui=True, save=None):
 
 
 def main():
+    global timelog
     import argparse
 
     parser = argparse.ArgumentParser(description="Process some integers.")
@@ -246,13 +252,19 @@ def main():
         type=str,
     )
     parser.add_argument("--gui", action="store_true", help="enable gui")
+    parser.add_argument("--time", action="store_true", help="enable time logging")
+    parser.add_argument(
+        "--savefinal", action="store_true", help="enable saving colour image(slow)"
+    )
     parser.add_argument(
         "--save",
-        default=0,
+        default=1,
         help="length of save cycle (0 for no save)",
         type=int,
     )
     args = parser.parse_args()
+
+    timelog = args.time
 
     camera = cv2.VideoCapture(args.camera)
     camera.open(-1)
