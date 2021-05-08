@@ -151,6 +151,18 @@ class CameraThread(threading.Thread):
         while True:
             currentImageFrame.append(readCamera(self.camera))
 
+def wma(acc, v):
+    weight_sum = 0
+    value_sum = 0
+    for weight, value in enumerate(acc):
+        if value is None:
+            continue
+        weight += 1
+        weight_sum += weight
+        value_sum += value[v]*weight
+    if weight_sum < config["minWeight"]:
+        return None
+    return value_sum / weight_sum
 
 def processImage(imageFrame, gui=True, save=None, savefinal=True):
     global kk
@@ -254,7 +266,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         dic = {
             "x": mid[0] / imageFrame.shape[1],
             "y": mid[1] / imageFrame.shape[0],
-            "dist": dist,
+            "dist": dist / imageFrame.shape[1],
         }
 
         cv2.putText(
@@ -270,25 +282,13 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     if len(acc) > config["accLen"]:
         acc.pop(0)
 
-    def wma(acc, v):
-        weight_sum = 0
-        value_sum = 0
-        for weight, value in enumerate(acc):
-            if value is None:
-                continue
-            weight += 1
-            weight_sum += weight
-            value_sum += value[v]
-        if weight_sum < config["minWeight"]:
-            return None
-        return value_sum / weight_sum
 
-    ret = {
+    ret = collections.OrderedDict({
         "now": dic,
         "x": wma(acc, "x"),
         "y": wma(acc, "y"),
         "dist": wma(acc, "dist"),
-    }
+    })
 
     now = perftime("other", now)
     if save and savefinal:
@@ -363,7 +363,7 @@ def main():
     cameraThread = CameraThread(camera)
 
     if not args.nomotor:
-        from . import motor
+        import motor
 
         motor.init_motor_pins()
         motor.set_motor(motor.MotorOrders.STOP)
@@ -375,12 +375,19 @@ def main():
         except IndexError:
             time.sleep(0.005)
             continue
-        dic = processImage(imageFrame, args.gui, args.save)
+        dic = processImage(imageFrame, not args.gui, args.save)
         now = perftime("total time", now)
-        print(json.dumps(dic))
         if not args.nomotor:
-            nstate = motor.desired_motor_state_dist(x=dic["x"], dist=dic["dist"])
-            motor.set_motor(nstate)
+            if dic['x']:
+                camera_data = motor.CameraData(x=dic["x"], dist=dic["dist"])
+            else:
+                camera_data = None
+            dic['motor'] = motor.desired_motor_state_dist(camera_data)
+            motor.set_motor(dic['motor'])
+            dic['motor'] = dic['motor'].name
+            dic.move_to_end('dist', last=False)
+            dic.move_to_end('motor', last=False)
+        print(json.dumps(dic))
         #       if dic['now']:
         #           print("now: x: {:6.2f}, y: {:6.2f}, dist: {:6.2f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']))
         #       else:

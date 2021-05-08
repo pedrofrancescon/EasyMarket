@@ -1,4 +1,9 @@
-import RPi.GPIO as GPIO
+
+try:
+    import RPi.GPIO as GPIO
+    rpi = True
+except ModuleNotFoundError:
+    rpi = False
 from enum import Enum, IntEnum
 
 
@@ -18,12 +23,16 @@ motor_pins = [40, 38, 32, 36]
 
 
 def init_motor_pins():
+    if not rpi:
+        return
     GPIO.setmode(GPIO.BOARD)
     for pin in motor_pins:
         GPIO.setup(pin, GPIO.OUT)
 
 
 def set_motor(nstate):
+    if not rpi:
+        return
     GPIO.output(motor_pins, nstate.value)
 
 
@@ -56,19 +65,19 @@ class DistCases(IntEnum):
 
 
 def dist_to_cases(dist):
-    if dist < 150:
+    if dist > 0.4:
         return DistCases.TOOCLOSE
-    if dist < 250:
+    if dist > 0.35:
         return DistCases.CLOSE
-    if dist < 350:
+    if dist > 0.17:
         return DistCases.OK
-    if dist < 450:
+    if dist > 0.12:
         return DistCases.FAR
     return DistCases.TOOFAR
 
 
-class CurrentData:
-    def __init__(x, dist):
+class CameraData:
+    def __init__(self, x, dist):
         self.x = x_to_cases(x)
         self.dist = dist_to_cases(dist)
 
@@ -79,7 +88,7 @@ def desired_motor_state_dist(current):
     if current.dist >= DistCases.FAR:
         return MotorOrders.FORWARD
     elif current.dist <= DistCases.CLOSE:
-        return MotorOrders.BACKWARDS
+        return MotorOrders.BACKWARD
     else:
         return MotorOrders.STOP
 
@@ -87,7 +96,7 @@ def desired_motor_state_dist(current):
 def desired_motor_state(current):
     # Very close, go backwards
     if current and current.dist <= DistCases.CLOSE:
-        return MotorOrders.BACKWARDS
+        return MotorOrders.BACKWARD
     # Rotate till we find the lost target again or
     # The target is close, don`t move, just turn in its direction
     if (current is None) or current.dist <= DistCases.OK:
@@ -102,7 +111,7 @@ def desired_motor_state(current):
             return MotorOrders.TURNRIGHT
         if current.x == XCases.RIGHT:
             return MotorOrders.TURNLEFT
-        return MotorOrders.FORWARDS
+        return MotorOrders.FORWARD
 
 
 """
