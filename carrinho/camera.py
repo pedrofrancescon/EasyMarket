@@ -18,6 +18,7 @@ import numpy as np
 import cv2
 import json
 import threading
+import collections
 
 
 def mouseRGB(event, x, y, flags, param):
@@ -25,15 +26,6 @@ def mouseRGB(event, x, y, flags, param):
         colors = hsvFrame[y, x]
         print("colors: ", colors)
         print("Coordinates of pixel: X: ", x, "Y: ", y)
-
-
-accLen = 5
-minWeight = 4
-acc = []
-minRect = 0.7
-minHull = 0.8
-minArea = 200
-kk = 0
 
 
 masks = {
@@ -57,7 +49,20 @@ masks = {
     ],
 }
 
-gmask = masks["blue"]
+acc = []
+kk = 0
+
+config = dict(
+    accLen=8,
+    minWeight=10,
+    minRect=0.7,
+    minHull=0.8,
+    minArea=250,
+    max01AreaRatio=1.75,
+    min12AreaRatio=2,
+    low=masks["blue"][0],
+    high=masks["blue"][1],
+)
 
 
 class KeyboardThread(threading.Thread):
@@ -87,49 +92,30 @@ def update_mask_input(inp):
 
     # evaluate the keyboard input
     l = json.loads(inp)
-    low = l.get("low")
-    high = l.get("high")
-    lminRect = l.get("minRect")
-    lminHull = l.get("minHull")
-    lminArea = l.get("minArea")
-    laccLen = l.get("accLen")
-    lminWeight = l.get("minWeight")
-    global minRect
-    global minHull
-    global minArea
-    global accLen
-    global maxMisses
-    if lminRect is not None:
-        minRect = lminRect
-    if lminHull is not None:
-        minHull = lminHull
-    if lminArea is not None:
-        minArea = lminArea
-    if laccLen is not None:
-        accLen = laccLen
-    if lminWeight is not None:
-        minWeight = lminWeight
-    if low:
-        gmask[0] = np.array(
-            [
-                int((low["h"] / 360.0) * 255),
-                int(low["s"] * 255),
-                int(low["v"] * 255),
-            ],
-            np.uint8,
-        )
-    if high:
-        gmask[1] = np.array(
-            [
-                int((high["h"] / 360.0) * 255),
-                int(high["s"] * 255),
-                int(high["v"] * 255),
-                ##
-                ##            255,
-                ##            255,
-            ],
-            np.uint8,
-        )
+    for key, value in l.items():
+        if key == "low":
+            config["low"] = np.array(
+                [
+                    int((value["h"] / 360.0) * 255),
+                    int(value["s"] * 255),
+                    int(value["v"] * 255),
+                ],
+                np.uint8,
+            )
+        elif key == "high":
+            config["high"] = np.array(
+                [
+                    int((value["h"] / 360.0) * 255),
+                    int(value["s"] * 255),
+                    int(value["v"] * 255),
+                ],
+                np.uint8,
+            )
+        else:
+            config[key] = value
+
+
+#   print(config, file=sys.stderr)
 
 
 def perftime(pre, tim):
@@ -149,7 +135,7 @@ def readCamera(camera):
     return imageFrame
 
 
-currentImageFrame = None
+currentImageFrame = collections.deque(maxlen=1)
 
 
 class CameraThread(threading.Thread):
@@ -163,9 +149,20 @@ class CameraThread(threading.Thread):
 
     def run(self):
         while True:
-            global currentImageFrame
-            currentImageFrame = readCamera(self.camera)
+            currentImageFrame.append(readCamera(self.camera))
 
+def wma(acc, v):
+    weight_sum = 0
+    value_sum = 0
+    for weight, value in enumerate(acc):
+        if value is None:
+            continue
+        weight += 1
+        weight_sum += weight
+        value_sum += value[v]*weight
+    if weight_sum < config["minWeight"]:
+        return None
+    return value_sum / weight_sum
 
 def processImage(imageFrame, gui=True, save=None, savefinal=True):
     global kk
@@ -183,7 +180,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     hsvFrame = cv2.cvtColor(imageFrame, cv2.COLOR_BGR2HSV)
 
     now = perftime("hsvFrame", now)
-    mask = cv2.inRange(hsvFrame, gmask[0], gmask[1])
+    mask = cv2.inRange(hsvFrame, config["low"], config["high"])
     now = perftime("inRange", now)
     if gui:
         cv2.imshow("mask", mask)
@@ -221,22 +218,23 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         # 		if cv2.isContourConvex(contour):
         # 			continue
         area = cv2.contourArea(contour)
-        if area < minArea:
+        if area < config["minArea"]:
             continue
         rect = cv2.minAreaRect(contour)
         box = cv2.boxPoints(rect)
         box = np.int0(box)
         rectArea = rect[1][0] * rect[1][1]
-        if area / rectArea < minRect:
+        # TODO: checksquareness
+        if area / rectArea < config["minRect"]:
             continue
         hull = cv2.convexHull(contour)
         hullArea = cv2.contourArea(hull)
-        if area / hullArea < minHull:
+        if area / hullArea < config["minHull"]:
             continue
         cv2.drawContours(imageFrame, [box], 0, (0, 0, 255), 2)
         oo = np.int0(rect[0])
         cv2.circle(imageFrame, tuple(oo), 3, (0, 255, 0), cv2.FILLED)
-        t.append(oo)
+        t.append((oo, area))
         cv2.putText(
             imageFrame,
             "{:.2f}".format(area),
@@ -250,19 +248,28 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     global acc
 
     for (a, b) in itertools.combinations(t, 2):
-        cv2.line(imageFrame, tuple(a), tuple(b), (255, 0, 255), 3)
+        cv2.line(imageFrame, tuple(a[0]), tuple(b[0]), (255, 0, 255), 3)
 
     now = perftime("lines", now)
     dic = None
-    if len(t) == 2:
-        a = t[0]
-        b = t[1]
+
+    t = sorted(t, reverse=True, key=lambda x: x[1])
+
+    if len(t) >= 2 and (
+        (len(t) == 2)
+        or (
+            (t[0][1] / t[1][1] < config["max01AreaRatio"])
+            and (t[1][1] / t[2][1] > config["min12AreaRatio"])
+        )
+    ):
+        a = t[0][0]
+        b = t[1][0]
         dist = cv2.norm(b - a, cv2.NORM_L2)
         mid = a + (b - a) / 2
         dic = {
             "x": mid[0] / imageFrame.shape[1],
             "y": mid[1] / imageFrame.shape[0],
-            "dist": dist,
+            "dist": dist / imageFrame.shape[1],
         }
 
         cv2.putText(
@@ -275,28 +282,16 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
             4,
         )
     acc.append(dic)
-    if len(acc) > accLen:
+    if len(acc) > config["accLen"]:
         acc.pop(0)
 
-    def wma(acc, v):
-        weight_sum = 0
-        value_sum = 0
-        for weight, value in enumerate(acc):
-            if value is None:
-                continue
-            weight += 1
-            weight_sum += weight
-            value_sum += value[v]
-        if weight_sum < minWeight:
-            return None
-        return value_sum / weight_sum
 
-    ret = {
+    ret = collections.OrderedDict({
         "now": dic,
         "x": wma(acc, "x"),
         "y": wma(acc, "y"),
         "dist": wma(acc, "dist"),
-    }
+    })
 
     now = perftime("other", now)
     if save and savefinal:
@@ -326,6 +321,7 @@ def main():
         type=str,
     )
     parser.add_argument("--gui", action="store_true", help="enable gui")
+    parser.add_argument("--nomotor", action="store_true", help="disable motor")
     parser.add_argument("--time", action="store_true", help="enable time logging")
     parser.add_argument(
         "--savefinal", action="store_true", help="enable saving colour image(slow)"
@@ -342,8 +338,7 @@ def main():
 
     camera = cv2.VideoCapture(args.camera)
     camera.open(-1)
-    global currentImageFrame
-    currentImageFrame = readCamera(camera)
+    currentImageFrame.append(readCamera(camera))
 
     #   print(camera.set(cv2.CAP_PROP_AUTO_WB, False))
     #   print(camera.set(cv2.CAP_PROP_AUTO_WB, 0))
@@ -370,11 +365,36 @@ def main():
     kthread = KeyboardThread(update_mask_input)
     cameraThread = CameraThread(camera)
 
+    if not args.nomotor:
+        import motor
+
+        motor.init_motor_pins()
+        motor.set_motor(motor.MotorOrders.STOP)
+
     while 1:
         now = time.perf_counter()
-        dic = processImage(currentImageFrame, args.gui, args.save, args.savefinal)
+        try:
+            imageFrame = currentImageFrame.pop()
+        except IndexError:
+            time.sleep(0.005)
+            continue
+        dic = processImage(imageFrame, not args.gui, args.save, args.savefinal)
         now = perftime("total time", now)
+        if not args.nomotor:
+            if dic['x']:
+                camera_data = motor.CameraData(x=dic["x"], dist=dic["dist"])
+            else:
+                camera_data = None
+            dic['motor'] = motor.desired_motor_state_dist(camera_data)
+            motor.set_motor(dic['motor'])
+            dic['motor'] = dic['motor'].name
+            dic.move_to_end('dist', last=False)
+            dic.move_to_end('motor', last=False)
         print(json.dumps(dic))
+        #       if dic['now']:
+        #           print("now: x: {:6.2f}, y: {:6.2f}, dist: {:6.2f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']))
+        #       else:
+        #           print(None)
         now = perftime("print", now)
         if not kthread.is_alive():
             raise Exception("terminal")
