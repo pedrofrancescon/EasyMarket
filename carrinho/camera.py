@@ -17,6 +17,11 @@ import cv2
 import json
 import threading
 import collections
+try:
+    import RPi.GPIO
+    rpi = True
+except ModuleNotFoundError:
+    rpi = False
 
 
 def clamp(v, ma=255, mi=0):
@@ -45,9 +50,13 @@ masks = {
         np.array([94, 80, 2], np.uint8),
         np.array([120, 255, 255], np.uint8),
     ],
-    "blue": [
+    "blue3": [
         np.array([105, 180, 3], np.uint8),
         np.array([120, 255, 255], np.uint8),
+    ],
+    "blue": [
+        np.array([100, 53, 13], np.uint8),
+        np.array([117, 255, 255], np.uint8),
     ],
 }
 
@@ -56,17 +65,17 @@ kk = 0
 
 import os
 try:
-    SAVE_PREFIX = os.environ['XDG_RUNTIME_DIR']
+    SAVE_PREFIX = os.environ['XDG_RUNTIME_DIR'] + '/'
 except KeyError:
-    SAVE_PREFIX = "./"
+    SAVE_PREFIX = "/run/user/1001/"
 
 config_lock = threading.Lock()
 
 what = time.time()
 
 config = dict(
-    accLen=8,
-    minWeight=10,
+    accLen=4,
+    minWeight=5,
     minRect=0.7,
     minHull=0.8,
     minArea=250,
@@ -134,8 +143,10 @@ def update_mask_input(inp):
 
 #   print(config, file=sys.stderr)
 
-logfile = open("timelog.txt", "a")
-print("------------START------------", file=logfile)
+logfile = open(SAVE_PREFIX + "timelog.txt", "a")
+log2file = open(SAVE_PREFIX + "mainlog.txt", "a")
+print("\n\n------------START------------", file=logfile)
+print("\n\n------------START------------", file=log2file)
 
 def perftime(pre, tim):
     if not tim:
@@ -221,19 +232,22 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     now = perftime("dilate", now)
     if gui:
         cv2.imshow("dilated", mask)
-    if save:
+    if save and savefinal:
         cv2.imwrite(SAVE_PREFIX + "dilated-{}.png".format(kk), mask)
     now = perftime("save-dilated", now)
     res = cv2.bitwise_and(imageFrame, imageFrame, mask=mask)
     now = perftime("and", now)
     if gui:
         cv2.imshow("res", res)
-    if save:
+    if save and savefinal:
         cv2.imwrite(SAVE_PREFIX + "res-{}.png".format(kk), res)
     now = perftime("save-res", now)
 
     # Creating contour to track green color
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    if int(cv2.__version__[0]) < 4:
+        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    else:
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     now = perftime("contours", now)
     t = []
@@ -370,6 +384,7 @@ def main():
         type=str,
     )
     parser.add_argument("--gui", action="store_true", help="enable gui")
+    parser.add_argument("--logstderr", action="store_true", help="write main log to stderr")
     parser.add_argument("--nomotor", action="store_true", help="disable motor")
     parser.add_argument("--time", action="store_true", help="enable time logging")
     parser.add_argument(
@@ -418,8 +433,10 @@ def main():
         import motor
 
         motor.init_motor_pins()
+        motor.init_led_pins()
         motor.set_motor(motor.MotorOrders.STOP)
 
+    cycle = time.perf_counter()
     while 1:
         now = time.perf_counter()
         try:
@@ -428,7 +445,7 @@ def main():
             time.sleep(0.005)
             continue
         now = perftime("wait for image", now)
-        dic = processImage(imageFrame, args.gui, args.save, args.savefinal)
+        dic = processImage(imageFrame, False if rpi else args.gui, args.save, args.savefinal)
         now = perftime("processImage", now)
         if not args.nomotor:
             if dic['x']:
@@ -442,10 +459,13 @@ def main():
             dic.move_to_end('motor', last=False)
         now = perftime("motor", now)
         print(json.dumps(dic))
-        #       if dic['now']:
-        #           print("now: x: {:6.2f}, y: {:6.2f}, dist: {:6.2f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']))
-        #       else:
-        #           print(None)
+        cycle = perftime("cycle", cycle)
+        avglog = "avg: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['x'], dic['y'], dic['dist']) if dic['x'] else ''
+        nowlog = "now: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']) if dic['now'] else ''
+        log = "T:{:6.3f}, {:9} | {:36} | {}".format(cycle, dic['motor'], avglog, nowlog)
+        if args.logstderr:
+             eprint(log)
+        print(log, file=log2file)
         now = perftime("print", now)
         if not kthread.is_alive():
             raise Exception("terminal")
