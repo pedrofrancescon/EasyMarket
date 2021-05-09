@@ -1,22 +1,23 @@
-
 try:
     import RPi.GPIO as GPIO
+
     rpi = True
 except ModuleNotFoundError:
     rpi = False
 from enum import Enum, IntEnum
 
 
+# fmt: off
 class MotorOrders(Enum):
-    STOP = ([1, 0, 0], [0, 0, 0, 0])
-    FORWARD = ([0, 1, 0], [1, 0, 1, 0])
-    BACKWARD = ([0, 0, 1], [0, 1, 0, 1])
-    TURNLEFT = ([1, 1, 1], [0, 0, 1, 0])
-    TURNRIGHT = ([1, 1, 1], [1, 0, 0, 0])
-    ROTATELEFT = ([1, 0, 1], [0, 1, 1, 0])
+    STOP =        ([1, 0, 0], [0, 0, 0, 0])
+    FORWARD =     ([0, 1, 0], [1, 0, 1, 0])
+    BACKWARD =    ([0, 0, 1], [0, 1, 0, 1])
+    TURNLEFT =    ([1, 1, 1], [0, 0, 1, 0])
+    TURNRIGHT =   ([1, 1, 1], [1, 0, 0, 0])
+    ROTATELEFT =  ([1, 0, 1], [0, 1, 1, 0])
     ROTATERIGHT = ([1, 1, 0], [1, 0, 0, 1])
-    LOCK = ([0, 0, 0], [1, 1, 1, 1])
-
+    LOCK =        ([0, 0, 0], [1, 1, 1, 1])
+# fmt: on
 
 # L+ 40 L- 38 R- 32 R+ 36
 motor_pins = [40, 38, 32, 36]
