@@ -119,7 +119,7 @@ def update_mask_input(inp):
             if key == "low":
                 config["low"] = np.array(
                     [
-                        int((value["h"] / 360.0) * 255),
+                        int(value["h"] * 0.5),
                         int(value["s"] * 255),
                         int(value["v"] * 255),
                     ],
@@ -128,7 +128,7 @@ def update_mask_input(inp):
             elif key == "high":
                 config["high"] = np.array(
                     [
-                        int((value["h"] / 360.0) * 255),
+                        int(value["h"] * 0.5),
                         int(value["s"] * 255),
                         int(value["v"] * 255),
                     ],
