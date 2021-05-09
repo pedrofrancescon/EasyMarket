@@ -19,11 +19,15 @@ import threading
 import collections
 
 
+def clamp(v, ma=255, mi=0):
+    max(mi, min(ma, v))
+
+
 def mouseRGB(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:  # checks mouse left button down condition
         colors = hsvFrame[y, x]
-        print("colors: ", colors)
-        print("Coordinates of pixel: X: ", x, "Y: ", y)
+        eprint("colors: ", colors)
+        eprint("Coordinates of pixel: X: ", x, "Y: ", y)
 
 
 masks = {
@@ -42,7 +46,7 @@ masks = {
         np.array([120, 255, 255], np.uint8),
     ],
     "blue": [
-        np.array([105, 180, 10], np.uint8),
+        np.array([105, 180, 3], np.uint8),
         np.array([120, 255, 255], np.uint8),
     ],
 }
