@@ -19,6 +19,11 @@ import cv2
 import json
 import threading
 import collections
+try:
+    import RPi.GPIO
+    rpi = True
+except ModuleNotFoundError:
+    rpi = False
 
 
 def mouseRGB(event, x, y, flags, param):
@@ -378,7 +383,7 @@ def main():
         except IndexError:
             time.sleep(0.005)
             continue
-        dic = processImage(imageFrame, not args.gui, args.save, args.savefinal)
+        dic = processImage(imageFrame, False if rpi else not args.nogui, args.save, args.savefinal)
         now = perftime("total time", now)
         if not args.nomotor:
             if dic['x']:

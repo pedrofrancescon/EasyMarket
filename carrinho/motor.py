@@ -67,7 +67,7 @@ class DistCases(IntEnum):
 def dist_to_cases(dist):
     if dist > 0.4:
         return DistCases.TOOCLOSE
-    if dist > 0.35:
+    if dist > 0.29:
         return DistCases.CLOSE
     if dist > 0.17:
         return DistCases.OK
