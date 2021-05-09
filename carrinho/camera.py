@@ -46,9 +46,13 @@ masks = {
         np.array([94, 80, 2], np.uint8),
         np.array([120, 255, 255], np.uint8),
     ],
-    "blue": [
+    "blue3": [
         np.array([105, 180, 10], np.uint8),
         np.array([120, 255, 255], np.uint8),
+    ],
+    "blue": [
+        np.array([100, 53, 13], np.uint8),
+        np.array([117, 255, 255], np.uint8),
     ],
 }
 
@@ -57,13 +61,13 @@ kk = 0
 
 import os
 try:
-    SAVE_PREFIX = os.environ['XDG_RUNTIME_DIR']
+    SAVE_PREFIX = os.environ['XDG_RUNTIME_DIR'] + '/'
 except KeyError:
-    SAVE_PREFIX = "./"
+    SAVE_PREFIX = "/run/user/1001/"
 
 config = dict(
-    accLen=8,
-    minWeight=10,
+    accLen=4,
+    minWeight=5,
     minRect=0.7,
     minHull=0.8,
     minArea=250,
@@ -215,14 +219,14 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     now = perftime("dilate", now)
     if gui:
         cv2.imshow("dilated", mask)
-    if save:
+    if save and savefinal:
         cv2.imwrite(SAVE_PREFIX + "dilated-{}.png".format(kk), mask)
     now = perftime("save-dilated", now)
     res = cv2.bitwise_and(imageFrame, imageFrame, mask=mask)
     now = perftime("and", now)
     if gui:
         cv2.imshow("res", res)
-    if save:
+    if save and savefinal:
         cv2.imwrite(SAVE_PREFIX + "res-{}.png".format(kk), res)
     now = perftime("save-res", now)
 
@@ -349,7 +353,7 @@ def main():
     )
     parser.add_argument(
         "--save",
-        default=2,
+        default=1,
         help="length of save cycle (0 for no save)",
         type=int,
     )
