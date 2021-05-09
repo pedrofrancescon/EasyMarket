@@ -50,6 +50,12 @@ masks = {
 acc = []
 kk = 0
 
+import os
+try:
+    SAVE_PREFIX = os.environ['XDG_RUNTIME_DIR']
+except KeyError:
+    SAVE_PREFIX = "./"
+
 config = dict(
     accLen=8,
     minWeight=10,
@@ -189,7 +195,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     if gui:
         cv2.imshow("mask", mask)
     if save:
-        cv2.imwrite("mask-{}.png".format(kk), mask)
+        cv2.imwrite(SAVE_PREFIX + "mask-{}.png".format(kk), mask)
     now = perftime("save-mask", now)
 
     # Morphological Transform, Dilation
@@ -203,14 +209,14 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     if gui:
         cv2.imshow("dilated", mask)
     if save:
-        cv2.imwrite("dilated-{}.png".format(kk), mask)
+        cv2.imwrite(SAVE_PREFIX + "dilated-{}.png".format(kk), mask)
     now = perftime("save-dilated", now)
     res = cv2.bitwise_and(imageFrame, imageFrame, mask=mask)
     now = perftime("and", now)
     if gui:
         cv2.imshow("res", res)
     if save:
-        cv2.imwrite("res-{}.png".format(kk), res)
+        cv2.imwrite(SAVE_PREFIX + "res-{}.png".format(kk), res)
     now = perftime("save-res", now)
 
     # Creating contour to track green color
@@ -299,7 +305,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
 
     now = perftime("other", now)
     if save and savefinal:
-        cv2.imwrite("colour-{}.png".format(kk), imageFrame)
+        cv2.imwrite(SAVE_PREFIX + "colour-{}.png".format(kk), imageFrame)
     if gui:
         cv2.imshow("colour", imageFrame)
         cv2.setMouseCallback("colour", mouseRGB)
@@ -383,7 +389,7 @@ def main():
             time.sleep(0.005)
             continue
         now = perftime("wait for image", now)
-        dic = processImage(imageFrame, not args.gui, args.save)
+        dic = processImage(imageFrame, args.gui, args.save, args.savefinal)
         now = perftime("processImage", now)
         if not args.nomotor:
             if dic['x']:
