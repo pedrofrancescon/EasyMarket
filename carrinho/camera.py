@@ -55,8 +55,8 @@ masks = {
         np.array([120, 255, 255], np.uint8),
     ],
     "blue": [
-        np.array([100, 53, 13], np.uint8),
-        np.array([117, 255, 255], np.uint8),
+        np.array([100, 53, 8], np.uint8),
+        np.array([120, 255, 255], np.uint8),
     ],
 }
 
@@ -74,8 +74,8 @@ config_lock = threading.Lock()
 what = time.time()
 
 config = dict(
-    accLen=4,
-    minWeight=5,
+    accLen=3,
+    minWeight=4,
     minRect=0.7,
     minHull=0.8,
     minArea=250,
@@ -83,10 +83,7 @@ config = dict(
     min12AreaRatio=2,
     low=masks["blue"][0],
     high=masks["blue"][1],
-    mutable=(
-      (-15, -40, None),
-      (+15, None, None),
-    ),
+    mutable=None,
 )
 
 
