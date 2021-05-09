@@ -126,8 +126,10 @@ def update_mask_input(inp):
 
 #   print(config, file=sys.stderr)
 
-logfile = open("timelog.txt", "a")
-print("------------START------------", file=logfile)
+logfile = open(SAVE_PREFIX + "timelog.txt", "a")
+log2file = open(SAVE_PREFIX + "mainlog.txt", "a")
+print("\n\n------------START------------", file=logfile)
+print("\n\n------------START------------", file=log2file)
 
 def perftime(pre, tim):
     if not tim:
@@ -339,6 +341,7 @@ def main():
         type=str,
     )
     parser.add_argument("--gui", action="store_true", help="enable gui")
+    parser.add_argument("--logstderr", action="store_true", help="write main log to stderr")
     parser.add_argument("--nomotor", action="store_true", help="disable motor")
     parser.add_argument("--time", action="store_true", help="enable time logging")
     parser.add_argument(
@@ -390,6 +393,7 @@ def main():
         motor.init_led_pins()
         motor.set_motor(motor.MotorOrders.STOP)
 
+    cycle = time.perf_counter()
     while 1:
         now = time.perf_counter()
         try:
@@ -412,10 +416,13 @@ def main():
             dic.move_to_end('motor', last=False)
         now = perftime("motor", now)
         print(json.dumps(dic))
-        #       if dic['now']:
-        #           print("now: x: {:6.2f}, y: {:6.2f}, dist: {:6.2f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']))
-        #       else:
-        #           print(None)
+        cycle = perftime("cycle", cycle)
+        avglog = "avg: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['x'], dic['y'], dic['dist']) if dic['x'] else ''
+        nowlog = "now: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']) if dic['now'] else ''
+        log = "T:{:6.3f}, {:9} | {:36} | {}".format(cycle, dic['motor'], avglog, nowlog)
+        if args.logstderr:
+             eprint(log)
+        print(log, file=log2file)
         now = perftime("print", now)
         if not kthread.is_alive():
             raise Exception("terminal")
