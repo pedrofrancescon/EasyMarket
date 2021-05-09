@@ -5,8 +5,6 @@ import sys
 
 
 def eprint(*args, **kwargs):
-    if not timelog:
-        return
     print(*args, file=sys.stderr, **kwargs)
 
 
@@ -117,12 +115,18 @@ def update_mask_input(inp):
 
 #   print(config, file=sys.stderr)
 
+logfile = open("timelog.txt", "a")
+print("------------START------------", file=logfile)
 
 def perftime(pre, tim):
     if not tim:
         tim = time.perf_counter()
     now = time.perf_counter()
-    eprint("{}: {}".format(pre, now - tim))
+    formatted = "{:17}: {:.10f}".format(pre, now - tim)
+    if timelog:
+        eprint(formatted)
+    else:
+        print(formatted, file=logfile)
     return now
 
 
@@ -186,6 +190,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         cv2.imshow("mask", mask)
     if save:
         cv2.imwrite("mask-{}.png".format(kk), mask)
+    now = perftime("save-mask", now)
 
     # Morphological Transform, Dilation
     # for each color and bitwise_and operator
@@ -199,12 +204,14 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         cv2.imshow("dilated", mask)
     if save:
         cv2.imwrite("dilated-{}.png".format(kk), mask)
+    now = perftime("save-dilated", now)
     res = cv2.bitwise_and(imageFrame, imageFrame, mask=mask)
     now = perftime("and", now)
     if gui:
         cv2.imshow("res", res)
     if save:
         cv2.imwrite("res-{}.png".format(kk), res)
+    now = perftime("save-res", now)
 
     # Creating contour to track green color
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -375,8 +382,9 @@ def main():
         except IndexError:
             time.sleep(0.005)
             continue
+        now = perftime("wait for image", now)
         dic = processImage(imageFrame, not args.gui, args.save)
-        now = perftime("total time", now)
+        now = perftime("processImage", now)
         if not args.nomotor:
             if dic['x']:
                 camera_data = motor.CameraData(x=dic["x"], dist=dic["dist"])
@@ -387,6 +395,7 @@ def main():
             dic['motor'] = dic['motor'].name
             dic.move_to_end('dist', last=False)
             dic.move_to_end('motor', last=False)
+        now = perftime("motor", now)
         print(json.dumps(dic))
         #       if dic['now']:
         #           print("now: x: {:6.2f}, y: {:6.2f}, dist: {:6.2f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']))
@@ -397,6 +406,7 @@ def main():
             raise Exception("terminal")
         if not cameraThread.is_alive():
             raise Exception("camera")
+        print("", file=logfile)
 
 
 if __name__ == "__main__":
