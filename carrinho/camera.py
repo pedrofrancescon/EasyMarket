@@ -5,8 +5,6 @@ import sys
 
 
 def eprint(*args, **kwargs):
-    if not timelog:
-        return
     print(*args, file=sys.stderr, **kwargs)
 
 
@@ -56,6 +54,12 @@ masks = {
 
 acc = []
 kk = 0
+
+import os
+try:
+    SAVE_PREFIX = os.environ['XDG_RUNTIME_DIR']
+except KeyError:
+    SAVE_PREFIX = "./"
 
 config = dict(
     accLen=8,
@@ -122,12 +126,18 @@ def update_mask_input(inp):
 
 #   print(config, file=sys.stderr)
 
+logfile = open("timelog.txt", "a")
+print("------------START------------", file=logfile)
 
 def perftime(pre, tim):
     if not tim:
         tim = time.perf_counter()
     now = time.perf_counter()
-    eprint("{}: {}".format(pre, now - tim))
+    formatted = "{:17}: {:.10f}".format(pre, now - tim)
+    if timelog:
+        eprint(formatted)
+    else:
+        print(formatted, file=logfile)
     return now
 
 
@@ -190,7 +200,8 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     if gui:
         cv2.imshow("mask", mask)
     if save:
-        cv2.imwrite("mask-{}.png".format(kk), mask)
+        cv2.imwrite(SAVE_PREFIX + "mask-{}.png".format(kk), mask)
+    now = perftime("save-mask", now)
 
     # Morphological Transform, Dilation
     # for each color and bitwise_and operator
@@ -203,13 +214,15 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     if gui:
         cv2.imshow("dilated", mask)
     if save:
-        cv2.imwrite("dilated-{}.png".format(kk), mask)
+        cv2.imwrite(SAVE_PREFIX + "dilated-{}.png".format(kk), mask)
+    now = perftime("save-dilated", now)
     res = cv2.bitwise_and(imageFrame, imageFrame, mask=mask)
     now = perftime("and", now)
     if gui:
         cv2.imshow("res", res)
     if save:
-        cv2.imwrite("res-{}.png".format(kk), res)
+        cv2.imwrite(SAVE_PREFIX + "res-{}.png".format(kk), res)
+    now = perftime("save-res", now)
 
     # Creating contour to track green color
     if int(cv2.__version__[0]) < 4:
@@ -300,7 +313,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
 
     now = perftime("other", now)
     if save and savefinal:
-        cv2.imwrite("colour-{}.png".format(kk), imageFrame)
+        cv2.imwrite(SAVE_PREFIX + "colour-{}.png".format(kk), imageFrame)
     if gui:
         cv2.imshow("colour", imageFrame)
         cv2.setMouseCallback("colour", mouseRGB)
@@ -383,8 +396,9 @@ def main():
         except IndexError:
             time.sleep(0.005)
             continue
-        dic = processImage(imageFrame, False if rpi else not args.nogui, args.save, args.savefinal)
-        now = perftime("total time", now)
+        now = perftime("wait for image", now)
+        dic = processImage(imageFrame, False if rpi else args.gui, args.save, args.savefinal)
+        now = perftime("processImage", now)
         if not args.nomotor:
             if dic['x']:
                 camera_data = motor.CameraData(x=dic["x"], dist=dic["dist"])
@@ -395,6 +409,7 @@ def main():
             dic['motor'] = dic['motor'].name
             dic.move_to_end('dist', last=False)
             dic.move_to_end('motor', last=False)
+        now = perftime("motor", now)
         print(json.dumps(dic))
         #       if dic['now']:
         #           print("now: x: {:6.2f}, y: {:6.2f}, dist: {:6.2f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']))
@@ -405,6 +420,7 @@ def main():
             raise Exception("terminal")
         if not cameraThread.is_alive():
             raise Exception("camera")
+        print("", file=logfile)
 
 
 if __name__ == "__main__":
