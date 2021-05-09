@@ -393,6 +393,12 @@ def main():
         help="length of save cycle (0 for no save)",
         type=int,
     )
+    parser.add_argument(
+        "--outputcycle",
+        default=4,
+        help="length of output cycle (1 for always)",
+        type=int,
+    )
     args = parser.parse_args()
 
     timelog = args.time
@@ -434,6 +440,7 @@ def main():
         motor.set_motor(motor.MotorOrders.STOP)
 
     cycle = time.perf_counter()
+    pp = 0
     while 1:
         now = time.perf_counter()
         try:
@@ -455,7 +462,13 @@ def main():
             dic.move_to_end('dist', last=False)
             dic.move_to_end('motor', last=False)
         now = perftime("motor", now)
-        print(json.dumps(dic))
+
+
+        pp = (pp + 1) % args.outputcycle
+        if not pp:
+            print(json.dumps(dic))
+        
+        
         cycle = perftime("cycle", cycle)
         avglog = "avg: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['x'], dic['y'], dic['dist']) if dic['x'] else ''
         nowlog = "now: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']) if dic['now'] else ''
