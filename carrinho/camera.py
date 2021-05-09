@@ -78,6 +78,7 @@ config = dict(
     minWeight=4,
     minRect=0.7,
     minHull=0.8,
+    maxUnsquareness=2,
     minArea=250,
     max01AreaRatio=1.75,
     min12AreaRatio=2,
@@ -258,7 +259,8 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         box = cv2.boxPoints(rect)
         box = np.int0(box)
         rectArea = rect[1][0] * rect[1][1]
-        # TODO: checksquareness
+        if max(rect[1][0], rect[1][1]) / min(rect[1][0], rect[1][1]) > config["maxUnsquareness"]:
+            continue
         if area / rectArea < config["minRect"]:
             continue
         hull = cv2.convexHull(contour)
