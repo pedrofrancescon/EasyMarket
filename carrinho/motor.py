@@ -8,18 +8,19 @@ from enum import Enum, IntEnum
 
 
 class MotorOrders(Enum):
-    STOP = [0, 0, 0, 0]
-    FORWARD = [1, 0, 1, 0]
-    BACKWARD = [0, 1, 0, 1]
-    TURNLEFT = [0, 0, 1, 0]
-    TURNRIGHT = [1, 0, 0, 0]
-    ROTATELEFT = [0, 1, 1, 0]
-    ROTATERIGHT = [1, 0, 0, 1]
-    LOCK = [1, 1, 1, 1]
+    STOP = ([1, 0, 0], [0, 0, 0, 0])
+    FORWARD = ([0, 1, 0], [1, 0, 1, 0])
+    BACKWARD = ([0, 0, 1], [0, 1, 0, 1])
+    TURNLEFT = ([1, 1, 1], [0, 0, 1, 0])
+    TURNRIGHT = ([1, 1, 1], [1, 0, 0, 0])
+    ROTATELEFT = ([1, 0, 1], [0, 1, 1, 0])
+    ROTATERIGHT = ([1, 1, 0], [1, 0, 0, 1])
+    LOCK = ([0, 0, 0], [1, 1, 1, 1])
 
 
 # L+ 40 L- 38 R- 32 R+ 36
 motor_pins = [40, 38, 32, 36]
+led_pins = [11, 15, 13]
 
 
 def init_motor_pins():
@@ -30,10 +31,19 @@ def init_motor_pins():
         GPIO.setup(pin, GPIO.OUT)
 
 
+def init_led_pins():
+    if not rpi:
+        return
+    GPIO.setmode(GPIO.BOARD)
+    for pin in led_pins:
+        GPIO.setup(pin, GPIO.OUT)
+
+
 def set_motor(nstate):
     if not rpi:
         return
-    GPIO.output(motor_pins, nstate.value)
+    GPIO.output(motor_pins, nstate.value[1])
+    GPIO.output(led_pins, nstate.value[0])
 
 
 class XCases(IntEnum):

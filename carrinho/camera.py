@@ -387,6 +387,7 @@ def main():
         import motor
 
         motor.init_motor_pins()
+        motor.init_led_pins()
         motor.set_motor(motor.MotorOrders.STOP)
 
     while 1:
