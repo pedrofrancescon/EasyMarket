@@ -380,9 +380,14 @@ def main():
         help="color ({})".format(list(masks.keys())),
         type=str,
     )
+    parser.add_argument(
+        "--motor",
+        default="XDIST",
+        help="DIST XDIST RANGEXDIST NONE",
+        type=str,
+    )
     parser.add_argument("--gui", action="store_true", help="enable gui")
     parser.add_argument("--logstderr", action="store_true", help="write main log to stderr")
-    parser.add_argument("--nomotor", action="store_true", help="disable motor")
     parser.add_argument("--time", action="store_true", help="enable time logging")
     parser.add_argument(
         "--savefinal", action="store_true", help="enable saving colour image(slow)"
@@ -432,13 +437,14 @@ def main():
     kthread = KeyboardThread(update_mask_input)
     cameraThread = CameraThread(camera)
 
-    if not args.nomotor:
+    if args.motor != "NONE":
         import motor
 
         motor.init_motor_pins()
         motor.init_led_pins()
         motor.set_motor(motor.MotorOrders.STOP)
 
+    last_camera_data = None
     cycle = time.perf_counter()
     pp = 0
     while 1:
@@ -451,12 +457,19 @@ def main():
         now = perftime("wait for image", now)
         dic = processImage(imageFrame, False if rpi else args.gui, args.save, args.savefinal)
         now = perftime("processImage", now)
-        if not args.nomotor:
+        if args.motor != "NONE":
             if dic['x']:
                 camera_data = motor.CameraData(x=dic["x"], dist=dic["dist"])
             else:
                 camera_data = None
-            dic['motor'] = motor.desired_motor_state_dist(camera_data)
+            if args.motor == "DIST":
+                dic['motor'] = motor.desired_motor_state_dist(camera_data)
+            elif args.motor == "XDIST":
+                if camera_data:
+                    last_camera_data = camera_data
+                dic['motor'] = motor.desired_motor_state(bool(camera_data), last_camera_data)
+            elif args.motor == "RANGEXDIST":
+                dic['motor'] = motor.desired_motor_state_range(camera_data)
             motor.set_motor(dic['motor'])
             dic['motor'] = dic['motor'].name
             dic.move_to_end('dist', last=False)
@@ -472,7 +485,7 @@ def main():
         cycle = perftime("cycle", cycle)
         avglog = "avg: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['x'], dic['y'], dic['dist']) if dic['x'] else ''
         nowlog = "now: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']) if dic['now'] else ''
-        log = "T:{:6.3f}, {:9} | {:36} | {}".format(cycle, dic['motor'], avglog, nowlog)
+        log = "T:{:6.3f}, {:11} | {:36} | {}".format(cycle, dic['motor'], avglog, nowlog)
         if args.logstderr:
              eprint(log)
         print(log, file=log2file)

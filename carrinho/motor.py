@@ -103,24 +103,28 @@ def desired_motor_state_dist(current):
         return MotorOrders.STOP
 
 
-def desired_motor_state(current):
+def desired_motor_state(in_sight, last):
+    # Target never acquired
+    if last is None:
+        return MotorOrders.STOP
     # Very close, go backwards
-    if current and current.dist <= DistCases.CLOSE:
+    if in_sight and last.dist <= DistCases.CLOSE:
         return MotorOrders.BACKWARD
     # Rotate till we find the lost target again or
     # The target is close, don`t move, just turn in its direction
-    if (current is None) or current.dist <= DistCases.OK:
-        if current.x == XCases.LEFT:
-            return MotorOrders.ROTATERIGHT
-        if current.x == XCases.RIGHT:
+    if (not in_sight) or last.dist <= DistCases.OK:
+        if last.x == XCases.LEFT:
             return MotorOrders.ROTATELEFT
+        if last.x == XCases.RIGHT:
+            return MotorOrders.ROTATERIGHT
         return MotorOrders.STOP
 
-    if current.dist >= DistCases.FAR:
-        if current.x == XCases.LEFT:
-            return MotorOrders.TURNRIGHT
-        if current.x == XCases.RIGHT:
+    # Target far enough, go after it
+    if last.dist >= DistCases.FAR:
+        if last.x == XCases.LEFT:
             return MotorOrders.TURNLEFT
+        if last.x == XCases.RIGHT:
+            return MotorOrders.TURNRIGHT
         return MotorOrders.FORWARD
 
 
