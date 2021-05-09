@@ -60,6 +60,10 @@ try:
 except KeyError:
     SAVE_PREFIX = "./"
 
+config_lock = threading.Lock()
+
+what = time.time()
+
 config = dict(
     accLen=8,
     minWeight=10,
@@ -70,6 +74,10 @@ config = dict(
     min12AreaRatio=2,
     low=masks["blue"][0],
     high=masks["blue"][1],
+    mutable=(
+      (-15, -40, None),
+      (+15, None, None),
+    ),
 )
 
 
@@ -100,27 +108,28 @@ def update_mask_input(inp):
 
     # evaluate the keyboard input
     l = json.loads(inp)
-    for key, value in l.items():
-        if key == "low":
-            config["low"] = np.array(
-                [
-                    int((value["h"] / 360.0) * 255),
-                    int(value["s"] * 255),
-                    int(value["v"] * 255),
-                ],
-                np.uint8,
-            )
-        elif key == "high":
-            config["high"] = np.array(
-                [
-                    int((value["h"] / 360.0) * 255),
-                    int(value["s"] * 255),
-                    int(value["v"] * 255),
-                ],
-                np.uint8,
-            )
-        else:
-            config[key] = value
+    with config_lock:
+        for key, value in l.items():
+            if key == "low":
+                config["low"] = np.array(
+                    [
+                        int((value["h"] / 360.0) * 255),
+                        int(value["s"] * 255),
+                        int(value["v"] * 255),
+                    ],
+                    np.uint8,
+                )
+            elif key == "high":
+                config["high"] = np.array(
+                    [
+                        int((value["h"] / 360.0) * 255),
+                        int(value["s"] * 255),
+                        int(value["v"] * 255),
+                    ],
+                    np.uint8,
+                )
+            else:
+                config[key] = value
 
 
 #   print(config, file=sys.stderr)
@@ -248,7 +257,7 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         cv2.drawContours(imageFrame, [box], 0, (0, 0, 255), 2)
         oo = np.int0(rect[0])
         cv2.circle(imageFrame, tuple(oo), 3, (0, 255, 0), cv2.FILLED)
-        t.append((oo, area))
+        t.append((oo, area, contour))
         cv2.putText(
             imageFrame,
             "{:.2f}".format(area),
@@ -285,6 +294,32 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
             "y": mid[1] / imageFrame.shape[0],
             "dist": dist / imageFrame.shape[1],
         }
+
+
+        if config['mutable']:
+             colmask = np.zeros(mask.shape,np.uint8)
+             cv2.drawContours(colmask,[t[0][2], t[1][2]],-1,255,-1)
+             if gui:
+                 cv2.imshow("colmask", colmask)
+             colpixelpoints = np.transpose(np.nonzero(mask))
+             contour_color = cv2.mean(hsvFrame, mask=colmask)
+             eprint(contour_color)
+             with config_lock:
+                  if config['mutable'][0] and what + 2 < time.time():
+                       print(1)
+                       config['low'] = np.array([
+                           contour_color[0] + config['mutable'][0][0] if config['mutable'][0][0] is not None else config['low'][0],
+                           contour_color[1] + config['mutable'][0][1] if config['mutable'][0][1] is not None else config['low'][1],
+                           contour_color[2] + config['mutable'][0][2] if config['mutable'][0][2] is not None else config['low'][2],
+                       ], np.uint8)
+                  if config['mutable'][1] and what + 2 < time.time():
+                       config['high'] = np.array([
+                           contour_color[0] + config['mutable'][1][0] if config['mutable'][1][0] is not None else config['high'][0],
+                           contour_color[1] + config['mutable'][1][1] if config['mutable'][1][1] is not None else config['high'][1],
+                           contour_color[2] + config['mutable'][1][2] if config['mutable'][1][2] is not None else config['high'][2],
+                       ], np.uint8)
+             eprint(config['low'])
+             eprint(config['high'])
 
         cv2.putText(
             imageFrame,
