@@ -88,6 +88,7 @@ config = dict(
     low=masks["blue"][0],
     high=masks["blue"][1],
     mutable=None,
+    motorOrder="STOP",
 )
 
 
@@ -503,7 +504,9 @@ def main():
                 camera_data = None
             if camera_data:
                 last_camera_data = camera_data
-            if args.motor == "DIST":
+            if config["motorOrder"]:
+                dic["motor"] = motor.MotorOrders[config["motorOrder"]]
+            elif args.motor == "DIST":
                 dic["motor"] = motor.desired_motor_state_dist(camera_data)
             elif args.motor == "XDIST":
                 dic["motor"] = motor.desired_motor_state(

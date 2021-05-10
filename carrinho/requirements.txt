@@ -1,4 +1,4 @@
 RPi.GPIO
 Bluetin_Echo
 numpy
-opencv
+opencv-python
