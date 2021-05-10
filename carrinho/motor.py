@@ -19,12 +19,16 @@ class MotorOrders(Enum):
     LOCK =        ([0, 0, 0], [1, 1, 1, 1])
 # fmt: on
 
+#BCM
 # L+ 40 L- 38 R- 32 R+ 36
-motor_pins = [40, 38, 32, 36]
+#motor_pins = [40, 38, 32, 36]
+motor_pins = [21, 20, 12, 16]
 # R G B
-led_pins = [11, 15, 13]
+#led_pins = [11, 15, 13]
+led_pins = [17, 22, 27]
 # Trigger, echo
-echo_pins = [16, 18]
+# 16 18
+echo_pins = [23, 24]
 
 
 ECHOV_STOP_DISTANCE = 16
@@ -74,7 +78,7 @@ def dist_to_cases(dist):
 def init_motor_pins():
     if not rpi:
         return
-    GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BCM)
     for pin in motor_pins:
         GPIO.setup(pin, GPIO.OUT)
 
@@ -82,7 +86,7 @@ def init_motor_pins():
 def init_led_pins():
     if not rpi:
         return
-    GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BCM)
     for pin in led_pins:
         GPIO.setup(pin, GPIO.OUT)
 
