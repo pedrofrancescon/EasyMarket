@@ -53,14 +53,16 @@ class XCases(IntEnum):
     RIGHT = 4
 
 
+X_TOLERANCE = 0.15
+
 def x_to_cases(x):
-    if x < 0.35:
+    if x < 0.50-X_TOLERANCE:
         return XCases.LEFT
     if x < 0.43: # Ignored
         return XCases.CLEFT
-    if x < 0.57:
+    if x < 0.57: # Ignored
         return XCases.CENTER
-    if x < 0.65: # Ignored
+    if x < 0.50+X_TOLERANCE: 
         return XCases.CRIGHT
     return XCases.RIGHT
 
@@ -94,7 +96,7 @@ def init_motor_pins():
 
 
 def c_pwm(v, m):
-    return min(config['pwm_min'] + v*(m/100.0)*(config['pwm_mul'])*(100.0-config['pwm_min']), 100.0)
+    return min(config['pwm_min'] + v*(m/100.0)*(config['pwm_mul'])*(100.0-config['pwm_min']), config['pwm_max'])
 
 
 def c_left_pwm(v):
@@ -201,15 +203,18 @@ def rotate_order_pwm(last):
 def get_turn_pwm(in_sight, last):
     return PWM_FULL
 
+error_int_acc = 0
 
 def get_rotate_pwm(in_sight, last):
-    if in_sight:
-        if last.x in (XCases.LEFT, XCases.RIGHT):
-            pwm = abs(last.x_value-0.5)*2.0*(config["pwm_rotate"]/100.0)
-        else:
-            pwm = 1.0
-    else:
-        pwm = 1.0
+    error_pro = abs(last.x_value-0.5)*2.0 if in_sight else 1.0
+    error_int = abs(last.x_value-0.5)-X_TOLERANCE if in_sight else 1.0
+    global error_int_acc
+    error_int_acc += error_int
+    error_int_acc = min(error_int_acc, 1.0/(config["pwm_int"]/1000.0)) # Maximum error
+    pwm = 0.0
+    pwm += error_pro*config["pwm_pro"]/1000.0
+    pwm += error_int_acc*config["pwm_int"]/1000.0
+    pwm *= config["pwm_rotate"]/100.0
     return (pwm, pwm)
 
 

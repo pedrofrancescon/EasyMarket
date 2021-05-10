@@ -90,10 +90,13 @@ config = dict(
     mutable=None,
     motorOrder=None, # Set to none to free motor controls
     pwm_min = 45.0, # Minimum PWM value
+    pwm_max = 100.0, # Maximum PWM value
     pwm_mul = 100.0, # Multipler for PWM
     pwm_left = 100.0, #Left only multiplier
     pwm_right = 100.0,
     pwm_rotate = 100.0,
+    pwm_pro = 400, # /1000
+    pwm_int = 150, # /1000
 )
 
 
