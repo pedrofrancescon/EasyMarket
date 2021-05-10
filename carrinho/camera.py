@@ -538,8 +538,9 @@ def main():
             if dic["now"]
             else ""
         )
-        log = "T:{:6.3f}, {:11} | echov: {:4} | {:36} | {}".format(
-            cycle, dic["motor"], dic.get("echov", ""), avglog, nowlog
+        echovlog = " | echov: {:5.{p}{ty}}".format(dic["echov"], p=0 if dic["echov"] >= 1000 else 1, ty="e" if dic["echov"] >= 1000 else "f") if args.motor == "RANGEXDIST" else ""
+        log = "T:{:6.3f}, {:11}{} | {:36} | {}".format(
+            cycle, dic["motor"], echovlog, avglog, nowlog
         )
         if args.logstderr:
             eprint(log)
