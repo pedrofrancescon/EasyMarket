@@ -6,6 +6,12 @@ except ModuleNotFoundError:
     rpi = False
 from enum import Enum, IntEnum
 
+import sys
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 
 # fmt: off
 class MotorOrders(Enum):
@@ -30,6 +36,10 @@ led_pins = [17, 22, 27]
 # 16 18
 echo_pins = [23, 24]
 
+# Left, right
+pwm_pin = [19, 26]
+PWM_FREQ=100
+PWM_FULL=(1.0, 1.0)
 
 ECHOV_STOP_DISTANCE = 16
 ECHOV_DODGE_DISTANCE = 35
@@ -83,6 +93,29 @@ def init_motor_pins():
         GPIO.setup(pin, GPIO.OUT)
 
 
+def c_pwm(v, m):
+    return min(config['pwm_min'] + v*(m/100.0)*(config['pwm_mul'])*(100.0-config['pwm_min']), 100.0)
+
+
+def c_left_pwm(v):
+    return c_pwm(v, config['pwm_left'])
+
+
+def c_right_pwm(v):
+    return c_pwm(v, config['pwm_right'])
+
+
+def init_pwm_pins():
+    if not rpi:
+        return
+    GPIO.setmode(GPIO.BOARD)
+    global left_pwm, right_pwm
+    left_pwm = GPIO.PWM(pwm_pins[0], PWM_FREQ)
+    right_pwm = GPIO.PWM(pwm_pins[1], PWM_FREQ)
+    left_pwm.start(c_left_pwm(1))
+    right_pwm.start(c_right_pwm(1))
+
+
 def init_led_pins():
     if not rpi:
         return
@@ -105,10 +138,19 @@ def set_motor(nstate):
     GPIO.output(led_pins, nstate.value[0])
 
 
+def set_pwms(left, right):
+    if not rpi:
+        return
+    left_pwm.ChangeDutyCycle(c_left_pwm())
+    right_pwm.ChangeDutyCycle(c_right_pwm())
+
+
 class CameraData:
     def __init__(self, x, dist):
         self.x = x_to_cases(x)
+        self.x_value = x
         self.dist = dist_to_cases(dist)
+        self.dist_value = dist
 
 
 def desired_motor_state_dist(current):
@@ -138,6 +180,37 @@ def rotate_order(last):
     return MotorOrders.STOP
 
 
+def turn_order_pwm(last):
+    if last.x == XCases.LEFT:
+        return MotorOrders.TURNLEFT
+    if last.x == XCases.RIGHT:
+        return MotorOrders.TURNRIGHT
+    return MotorOrders.STOP
+
+
+def rotate_order_pwm(last):
+    if last.x == XCases.LEFT:
+        return MotorOrders.ROTATELEFT
+    if last.x == XCases.RIGHT:
+        return MotorOrders.ROTATERIGHT
+    return MotorOrders.STOP
+
+
+def get_turn_pwm(in_sight, last):
+    return PWM_FULL
+
+
+def get_rotate_pwm(in_sight, last):
+    if in_sight:
+        if last.x in (XCases.LEFT, XCases.RIGHT):
+            pwm = abs(last.x_value-0.5)*2.0*(config["pwm_rotate"]/100.0)
+        else:
+            pwm = 1.0
+    else:
+        pwm = 1.0
+    return (pwm, pwm)
+
+
 def desired_motor_state(in_sight, last):
     # Target never acquired
     if last is None:
@@ -153,6 +226,23 @@ def desired_motor_state(in_sight, last):
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
         return turn_order(last)
+
+
+def desired_motor_state_pwm(in_sight, last):
+    # Target never acquired
+    if last is None:
+        return MotorOrders.STOP, PWM_FULL
+    # Very close, go backwards
+    if in_sight and last.dist <= DistCases.CLOSE:
+        return MotorOrders.BACKWARD, PWM_FULL
+    # Rotate till we find the lost target again or
+    # The target is close, don`t move, just turn in its direction
+    if (not in_sight) or last.dist <= DistCases.OK:
+        return rotate_order(last), get_rotate_pwm(in_sight, last)
+
+    # Target far enough, go after it
+    if last.dist >= DistCases.FAR:
+        return turn_order(last), get_turn_pwm(in_sight, last)
 
 
 def desired_motor_state_range(in_sight, last):
@@ -182,54 +272,30 @@ def desired_motor_state_range(in_sight, last):
             return echov, lturn_order
 
 
-"""
-if((!flow.get('camera_in_sight'))||(distance == "NEAR")) {
-    switch(flow.get("camera_direction")){
-        case "left":
-            return "ROTATELEFT";
-        case "center":
-            return "STOP";
-        case "right":
-            return "ROTATERIGHT";
-    }
-}
+def desired_motor_state_pwm_range(in_sight, last):
+    echov = echo.read("cm", 1)
 
-// Target is in sight but far away
+    # Target never acquired
+    if last is None:
+        return echov, MotorOrders.STOP, PWM_FULL
+    # Very close, go backwards
+    if in_sight and last.dist <= DistCases.CLOSE:
+        return echov, MotorOrders.BACKWARD, PWM_FULL
 
-// obstacle very close, stop!
-if (msg.payload <= 10) {
-    switch(flow.get("camera_direction")){
-        case "left":
-            return "ROTATELEFT";
-        case "center":
-            return "STOP";
-        case "right":
-            return "ROTATERIGHT";
-    }
-// obstacle close, try to get around it    
-} else if (msg.payload <= 20) {
-    switch(flow.get("camera_direction")){
-        case "left":
-            return "TURNLEFT";
-        case "center":
-            return "TURNLEFT";
-        case "right":
-            return "TURNRIGHT";
-    }
-// Free to go, advance
-} else {
-    switch(flow.get("camera_direction")){
-        case "left":
-            return "TURNLEFT";
-        case "center":
-            return "FORWARD";
-        case "right":
-            return "TURNRIGHT";
-    }
+    if echov <= ECHOV_STOP_DISTANCE:
+        return echov, rotate_order(last), get_lr_pwm(in_sight, last)
 
-}
-*/
+    # Rotate till we find the lost target again or
+    # The target is close, don`t move, just turn in its direction
+    if (not in_sight) or last.dist <= DistCases.OK:
+        return echov, rotate_order(last), get_lr_pwm(in_sight, last)
 
-return msg;
+    # Target far enough, go after it
+    if last.dist >= DistCases.FAR:
+        turn_order = turn_order(last)
+        if turn_order == MotorOrders.FORWARD and echov < ECHOV_DODGE_DISTANCE:
+            return echov, MotorOrders.TURNLEFT, PWM_FULL
+        else:
+            return echov, turn_order, get_lr_pwm(in_sight, last)
 
-"""
+
