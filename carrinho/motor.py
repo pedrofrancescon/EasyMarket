@@ -211,10 +211,11 @@ error_int_acc = 0
 
 def get_rotate_pwm(in_sight, last):
     error_pro = abs(last.x_value-0.5)*2.0 if in_sight else 1.0
-    error_int = abs(last.x_value-0.5)-X_TOLERANCE if in_sight else 1.0
+    error_int = abs(last.x_value-0.5)-X_TOLERANCE if in_sight else 0.0 # TODO: something
     global error_int_acc
     error_int_acc += error_int
     error_int_acc = min(error_int_acc, 1.0/(config["pwm_int"]/1000.0)) # Maximum error
+    error_int_acc = max(error_int_acc, 0)
     pwm = 0.0
     pwm += error_pro*config["pwm_pro"]/1000.0
     pwm += error_int_acc*config["pwm_int"]/1000.0

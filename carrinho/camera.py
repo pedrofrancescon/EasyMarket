@@ -77,8 +77,8 @@ config_lock = threading.Lock()
 what = time.time()
 
 config = dict(
-    accLen=3,
-    minWeight=4,
+    accLen=2,
+    minWeight=2,
     minRect=0.7,
     minHull=0.8,
     maxUnsquareness=2,
@@ -89,14 +89,14 @@ config = dict(
     high=masks["blue"][1],
     mutable=None,
     motorOrder=None, # Set to none to free motor controls
-    pwm_min = 45.0, # Minimum PWM value
-    pwm_max = 100.0, # Maximum PWM value
-    pwm_mul = 100.0, # Multipler for PWM
+    pwm_min = 42.0, # Minimum PWM value
+    pwm_max = 74.0, # Maximum PWM value
+    pwm_mul = 90.0, # Multipler for PWM
     pwm_left = 100.0, #Left only multiplier
     pwm_right = 100.0,
     pwm_rotate = 100.0,
-    pwm_pro = 400, # /1000
-    pwm_int = 150, # /1000
+    pwm_pro = 200, # /1000
+    pwm_int = 50, # /1000
 )
 
 
