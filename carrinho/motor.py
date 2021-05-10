@@ -94,7 +94,7 @@ def init_motor_pins():
 
 
 def c_pwm(v, m):
-    return min(config['pwm_min'] + v*(m/100.0)*(config['pwm_mul'])*(100.0-config['pwm_min']), 100.0)
+    return min(config['pwm_min'] + v*(m/100.0)*(config['pwm_mul'])*(100.0-config['pwm_min']), config['pwm_max'])
 
 
 def c_left_pwm(v):
