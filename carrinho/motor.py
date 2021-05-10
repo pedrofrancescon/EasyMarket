@@ -37,7 +37,7 @@ led_pins = [17, 22, 27]
 echo_pins = [23, 24]
 
 # Left, right
-pwm_pin = [19, 26]
+pwm_pins = [19, 26]
 PWM_FREQ=100
 PWM_FULL=(1.0, 1.0)
 
@@ -108,8 +108,10 @@ def c_right_pwm(v):
 def init_pwm_pins():
     if not rpi:
         return
-    GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BCM)
     global left_pwm, right_pwm
+    GPIO.setup(pwm_pins[0], GPIO.OUT)
+    GPIO.setup(pwm_pins[1], GPIO.OUT)
     left_pwm = GPIO.PWM(pwm_pins[0], PWM_FREQ)
     right_pwm = GPIO.PWM(pwm_pins[1], PWM_FREQ)
     left_pwm.start(c_left_pwm(1))
@@ -141,8 +143,8 @@ def set_motor(nstate):
 def set_pwms(left, right):
     if not rpi:
         return
-    left_pwm.ChangeDutyCycle(c_left_pwm())
-    right_pwm.ChangeDutyCycle(c_right_pwm())
+    left_pwm.ChangeDutyCycle(c_left_pwm(left))
+    right_pwm.ChangeDutyCycle(c_right_pwm(right))
 
 
 class CameraData:
