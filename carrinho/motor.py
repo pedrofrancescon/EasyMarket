@@ -21,7 +21,10 @@ class MotorOrders(Enum):
 
 # L+ 40 L- 38 R- 32 R+ 36
 motor_pins = [40, 38, 32, 36]
+# R G B
 led_pins = [11, 15, 13]
+# Trigger, echo
+echo_pins = [16, 18]
 
 
 def init_motor_pins():
@@ -38,6 +41,13 @@ def init_led_pins():
     GPIO.setmode(GPIO.BOARD)
     for pin in led_pins:
         GPIO.setup(pin, GPIO.OUT)
+
+
+def init_echo():
+    from Bluetin_Echo import Echo
+
+    global echo
+    echo = Echo(echo_pins[0], echo_pins[1])
 
 
 def set_motor(nstate):
@@ -104,6 +114,22 @@ def desired_motor_state_dist(current):
         return MotorOrders.STOP
 
 
+def turn_order(last):
+    if last.x == XCases.LEFT:
+        return MotorOrders.TURNLEFT
+    if last.x == XCases.RIGHT:
+        return MotorOrders.TURNRIGHT
+    return MotorOrders.STOP
+
+
+def rotate_order(last):
+    if last.x == XCases.LEFT:
+        return MotorOrders.ROTATELEFT
+    if last.x == XCases.RIGHT:
+        return MotorOrders.ROTATERIGHT
+    return MotorOrders.STOP
+
+
 def desired_motor_state(in_sight, last):
     # Target never acquired
     if last is None:
@@ -114,19 +140,38 @@ def desired_motor_state(in_sight, last):
     # Rotate till we find the lost target again or
     # The target is close, don`t move, just turn in its direction
     if (not in_sight) or last.dist <= DistCases.OK:
-        if last.x == XCases.LEFT:
-            return MotorOrders.ROTATELEFT
-        if last.x == XCases.RIGHT:
-            return MotorOrders.ROTATERIGHT
-        return MotorOrders.STOP
+        return rotate_order(last)
 
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
-        if last.x == XCases.LEFT:
+        return turn_order(last)
+
+
+def desired_motor_state_range(in_sight, last):
+    # Target never acquired
+    if last is None:
+        return MotorOrders.STOP
+    # Very close, go backwards
+    if in_sight and last.dist <= DistCases.CLOSE:
+        return MotorOrders.BACKWARD
+
+    echov = echo.read("cm", 1)
+
+    if echov <= 10:
+        return rotate_order(last)
+
+    # Rotate till we find the lost target again or
+    # The target is close, don`t move, just turn in its direction
+    if (not in_sight) or last.dist <= DistCases.OK:
+        return rotate_order(last)
+
+    # Target far enough, go after it
+    if last.dist >= DistCases.FAR:
+        turn_order = turn_order(last)
+        if turn_order == MotorOrders.FORWARD:
             return MotorOrders.TURNLEFT
-        if last.x == XCases.RIGHT:
-            return MotorOrders.TURNRIGHT
-        return MotorOrders.FORWARD
+        else:
+            return turn_order
 
 
 """

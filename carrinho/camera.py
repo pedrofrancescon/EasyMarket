@@ -478,6 +478,8 @@ def main():
         motor.init_motor_pins()
         motor.init_led_pins()
         motor.set_motor(motor.MotorOrders.STOP)
+        if args.motor == "RANGEXDIST":
+            motor.init_echo()
 
     last_camera_data = None
     cycle = time.perf_counter()
@@ -499,16 +501,18 @@ def main():
                 camera_data = motor.CameraData(x=dic["x"], dist=dic["dist"])
             else:
                 camera_data = None
+            if camera_data:
+                last_camera_data = camera_data
             if args.motor == "DIST":
                 dic["motor"] = motor.desired_motor_state_dist(camera_data)
             elif args.motor == "XDIST":
-                if camera_data:
-                    last_camera_data = camera_data
                 dic["motor"] = motor.desired_motor_state(
                     bool(camera_data), last_camera_data
                 )
             elif args.motor == "RANGEXDIST":
-                dic["motor"] = motor.desired_motor_state_range(camera_data)
+                dic["motor"] = motor.desired_motor_state_range(
+                    bool(camera_data), last_camera_data
+                )
             motor.set_motor(dic["motor"])
             dic["motor"] = dic["motor"].name
             dic.move_to_end("dist", last=False)
