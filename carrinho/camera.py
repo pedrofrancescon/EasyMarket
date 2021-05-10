@@ -539,7 +539,7 @@ def main():
             else ""
         )
         log = "T:{:6.3f}, {:11} | echov: {:4} | {:36} | {}".format(
-            cycle, dic["motor"], dic["echov"], avglog, nowlog
+            cycle, dic["motor"], dic.get("echov", ""), avglog, nowlog
         )
         if args.logstderr:
             eprint(log)
