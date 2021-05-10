@@ -27,34 +27,8 @@ led_pins = [11, 15, 13]
 echo_pins = [16, 18]
 
 
-def init_motor_pins():
-    if not rpi:
-        return
-    GPIO.setmode(GPIO.BOARD)
-    for pin in motor_pins:
-        GPIO.setup(pin, GPIO.OUT)
-
-
-def init_led_pins():
-    if not rpi:
-        return
-    GPIO.setmode(GPIO.BOARD)
-    for pin in led_pins:
-        GPIO.setup(pin, GPIO.OUT)
-
-
-def init_echo():
-    from Bluetin_Echo import Echo
-
-    global echo
-    echo = Echo(echo_pins[0], echo_pins[1])
-
-
-def set_motor(nstate):
-    if not rpi:
-        return
-    GPIO.output(motor_pins, nstate.value[1])
-    GPIO.output(led_pins, nstate.value[0])
+ECHOV_STOP_DISTANCE = 10
+ECHOV_DODGE_DISTANCE = 20
 
 
 class XCases(IntEnum):
@@ -95,6 +69,36 @@ def dist_to_cases(dist):
     if dist > 0.12:
         return DistCases.FAR
     return DistCases.TOOFAR
+
+
+def init_motor_pins():
+    if not rpi:
+        return
+    GPIO.setmode(GPIO.BOARD)
+    for pin in motor_pins:
+        GPIO.setup(pin, GPIO.OUT)
+
+
+def init_led_pins():
+    if not rpi:
+        return
+    GPIO.setmode(GPIO.BOARD)
+    for pin in led_pins:
+        GPIO.setup(pin, GPIO.OUT)
+
+
+def init_echo():
+    from Bluetin_Echo import Echo
+
+    global echo
+    echo = Echo(echo_pins[0], echo_pins[1])
+
+
+def set_motor(nstate):
+    if not rpi:
+        return
+    GPIO.output(motor_pins, nstate.value[1])
+    GPIO.output(led_pins, nstate.value[0])
 
 
 class CameraData:
@@ -157,7 +161,7 @@ def desired_motor_state_range(in_sight, last):
     if in_sight and last.dist <= DistCases.CLOSE:
         return echov, MotorOrders.BACKWARD
 
-    if echov <= 10:
+    if echov <= ECHOV_STOP_DISTANCE:
         return echov, rotate_order(last)
 
     # Rotate till we find the lost target again or
@@ -168,7 +172,7 @@ def desired_motor_state_range(in_sight, last):
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
         turn_order = turn_order(last)
-        if turn_order == MotorOrders.FORWARD:
+        if turn_order == MotorOrders.FORWARD and echov < ECHOV_DODGE_DISTANCE:
             return echov, MotorOrders.TURNLEFT
         else:
             return echov, turn_order
