@@ -148,30 +148,30 @@ def desired_motor_state(in_sight, last):
 
 
 def desired_motor_state_range(in_sight, last):
-    # Target never acquired
-    if last is None:
-        return MotorOrders.STOP
-    # Very close, go backwards
-    if in_sight and last.dist <= DistCases.CLOSE:
-        return MotorOrders.BACKWARD
-
     echov = echo.read("cm", 1)
 
+    # Target never acquired
+    if last is None:
+        return echov, MotorOrders.STOP
+    # Very close, go backwards
+    if in_sight and last.dist <= DistCases.CLOSE:
+        return echov, MotorOrders.BACKWARD
+
     if echov <= 10:
-        return rotate_order(last)
+        return echov, rotate_order(last)
 
     # Rotate till we find the lost target again or
     # The target is close, don`t move, just turn in its direction
     if (not in_sight) or last.dist <= DistCases.OK:
-        return rotate_order(last)
+        return echov, rotate_order(last)
 
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
         turn_order = turn_order(last)
         if turn_order == MotorOrders.FORWARD:
-            return MotorOrders.TURNLEFT
+            return echov, MotorOrders.TURNLEFT
         else:
-            return turn_order
+            return echov, turn_order
 
 
 """

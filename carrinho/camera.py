@@ -510,7 +510,7 @@ def main():
                     bool(camera_data), last_camera_data
                 )
             elif args.motor == "RANGEXDIST":
-                dic["motor"] = motor.desired_motor_state_range(
+                dic["echov"], dic["motor"] = motor.desired_motor_state_range(
                     bool(camera_data), last_camera_data
                 )
             motor.set_motor(dic["motor"])
@@ -538,8 +538,8 @@ def main():
             if dic["now"]
             else ""
         )
-        log = "T:{:6.3f}, {:11} | {:36} | {}".format(
-            cycle, dic["motor"], avglog, nowlog
+        log = "T:{:6.3f}, {:11} | echov: {:4} | {:36} | {}".format(
+            cycle, dic["motor"], dic["echov"], avglog, nowlog
         )
         if args.logstderr:
             eprint(log)
