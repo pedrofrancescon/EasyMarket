@@ -17,8 +17,10 @@ import cv2
 import json
 import threading
 import collections
+
 try:
     import RPi.GPIO
+
     rpi = True
 except ModuleNotFoundError:
     rpi = False
@@ -64,8 +66,9 @@ acc = []
 kk = 0
 
 import os
+
 try:
-    SAVE_PREFIX = os.environ['XDG_RUNTIME_DIR'] + '/'
+    SAVE_PREFIX = os.environ["XDG_RUNTIME_DIR"] + "/"
 except KeyError:
     SAVE_PREFIX = "/run/user/1001/"
 
@@ -78,6 +81,7 @@ config = dict(
     minWeight=4,
     minRect=0.7,
     minHull=0.8,
+    maxUnsquareness=2,
     minArea=250,
     max01AreaRatio=1.75,
     min12AreaRatio=2,
@@ -145,6 +149,7 @@ log2file = open(SAVE_PREFIX + "mainlog.txt", "a")
 print("\n\n------------START------------", file=logfile)
 print("\n\n------------START------------", file=log2file)
 
+
 def perftime(pre, tim):
     if not tim:
         tim = time.perf_counter()
@@ -182,6 +187,7 @@ class CameraThread(threading.Thread):
         while True:
             currentImageFrame.append(readCamera(self.camera))
 
+
 def wma(acc, v):
     weight_sum = 0
     value_sum = 0
@@ -190,10 +196,11 @@ def wma(acc, v):
             continue
         weight += 1
         weight_sum += weight
-        value_sum += value[v]*weight
+        value_sum += value[v] * weight
     if weight_sum < config["minWeight"]:
         return None
     return value_sum / weight_sum
+
 
 def processImage(imageFrame, gui=True, save=None, savefinal=True):
     global kk
@@ -242,9 +249,13 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
 
     # Creating contour to track green color
     if int(cv2.__version__[0]) < 4:
-        _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        _, contours, hierarchy = cv2.findContours(
+            mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+        )
     else:
-        contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(
+            mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+        )
 
     now = perftime("contours", now)
     t = []
@@ -258,7 +269,11 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
         box = cv2.boxPoints(rect)
         box = np.int0(box)
         rectArea = rect[1][0] * rect[1][1]
-        # TODO: checksquareness
+        if (
+            max(rect[1][0], rect[1][1]) / min(rect[1][0], rect[1][1])
+            > config["maxUnsquareness"]
+        ):
+            continue
         if area / rectArea < config["minRect"]:
             continue
         hull = cv2.convexHull(contour)
@@ -306,31 +321,48 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
             "dist": dist / imageFrame.shape[1],
         }
 
-
-        if config['mutable']:
-             colmask = np.zeros(mask.shape,np.uint8)
-             cv2.drawContours(colmask,[t[0][2], t[1][2]],-1,255,-1)
-             if gui:
-                 cv2.imshow("colmask", colmask)
-             colpixelpoints = np.transpose(np.nonzero(mask))
-             contour_color = cv2.mean(hsvFrame, mask=colmask)
-             eprint(contour_color)
-             with config_lock:
-                  if config['mutable'][0] and what + 2 < time.time():
-                       print(1)
-                       config['low'] = np.array([
-                           contour_color[0] + config['mutable'][0][0] if config['mutable'][0][0] is not None else config['low'][0],
-                           contour_color[1] + config['mutable'][0][1] if config['mutable'][0][1] is not None else config['low'][1],
-                           contour_color[2] + config['mutable'][0][2] if config['mutable'][0][2] is not None else config['low'][2],
-                       ], np.uint8)
-                  if config['mutable'][1] and what + 2 < time.time():
-                       config['high'] = np.array([
-                           contour_color[0] + config['mutable'][1][0] if config['mutable'][1][0] is not None else config['high'][0],
-                           contour_color[1] + config['mutable'][1][1] if config['mutable'][1][1] is not None else config['high'][1],
-                           contour_color[2] + config['mutable'][1][2] if config['mutable'][1][2] is not None else config['high'][2],
-                       ], np.uint8)
-             eprint(config['low'])
-             eprint(config['high'])
+        if config["mutable"]:
+            colmask = np.zeros(mask.shape, np.uint8)
+            cv2.drawContours(colmask, [t[0][2], t[1][2]], -1, 255, -1)
+            if gui:
+                cv2.imshow("colmask", colmask)
+            colpixelpoints = np.transpose(np.nonzero(mask))
+            contour_color = cv2.mean(hsvFrame, mask=colmask)
+            eprint(contour_color)
+            with config_lock:
+                if config["mutable"][0] and what + 2 < time.time():
+                    print(1)
+                    config["low"] = np.array(
+                        [
+                            contour_color[0] + config["mutable"][0][0]
+                            if config["mutable"][0][0] is not None
+                            else config["low"][0],
+                            contour_color[1] + config["mutable"][0][1]
+                            if config["mutable"][0][1] is not None
+                            else config["low"][1],
+                            contour_color[2] + config["mutable"][0][2]
+                            if config["mutable"][0][2] is not None
+                            else config["low"][2],
+                        ],
+                        np.uint8,
+                    )
+                if config["mutable"][1] and what + 2 < time.time():
+                    config["high"] = np.array(
+                        [
+                            contour_color[0] + config["mutable"][1][0]
+                            if config["mutable"][1][0] is not None
+                            else config["high"][0],
+                            contour_color[1] + config["mutable"][1][1]
+                            if config["mutable"][1][1] is not None
+                            else config["high"][1],
+                            contour_color[2] + config["mutable"][1][2]
+                            if config["mutable"][1][2] is not None
+                            else config["high"][2],
+                        ],
+                        np.uint8,
+                    )
+            eprint(config["low"])
+            eprint(config["high"])
 
         cv2.putText(
             imageFrame,
@@ -345,13 +377,14 @@ def processImage(imageFrame, gui=True, save=None, savefinal=True):
     if len(acc) > config["accLen"]:
         acc.pop(0)
 
-
-    ret = collections.OrderedDict({
-        "now": dic,
-        "x": wma(acc, "x"),
-        "y": wma(acc, "y"),
-        "dist": wma(acc, "dist"),
-    })
+    ret = collections.OrderedDict(
+        {
+            "now": dic,
+            "x": wma(acc, "x"),
+            "y": wma(acc, "y"),
+            "dist": wma(acc, "dist"),
+        }
+    )
 
     now = perftime("other", now)
     if save and savefinal:
@@ -380,9 +413,16 @@ def main():
         help="color ({})".format(list(masks.keys())),
         type=str,
     )
+    parser.add_argument(
+        "--motor",
+        default="XDIST",
+        help="DIST XDIST RANGEXDIST NONE",
+        type=str,
+    )
     parser.add_argument("--gui", action="store_true", help="enable gui")
-    parser.add_argument("--logstderr", action="store_true", help="write main log to stderr")
-    parser.add_argument("--nomotor", action="store_true", help="disable motor")
+    parser.add_argument(
+        "--logstderr", action="store_true", help="write main log to stderr"
+    )
     parser.add_argument("--time", action="store_true", help="enable time logging")
     parser.add_argument(
         "--savefinal", action="store_true", help="enable saving colour image(slow)"
@@ -432,13 +472,16 @@ def main():
     kthread = KeyboardThread(update_mask_input)
     cameraThread = CameraThread(camera)
 
-    if not args.nomotor:
+    if args.motor != "NONE":
         import motor
 
         motor.init_motor_pins()
         motor.init_led_pins()
         motor.set_motor(motor.MotorOrders.STOP)
+        if args.motor == "RANGEXDIST":
+            motor.init_echo()
 
+    last_camera_data = None
     cycle = time.perf_counter()
     pp = 0
     while 1:
@@ -449,32 +492,57 @@ def main():
             time.sleep(0.005)
             continue
         now = perftime("wait for image", now)
-        dic = processImage(imageFrame, False if rpi else args.gui, args.save, args.savefinal)
+        dic = processImage(
+            imageFrame, False if rpi else args.gui, args.save, args.savefinal
+        )
         now = perftime("processImage", now)
-        if not args.nomotor:
-            if dic['x']:
+        if args.motor != "NONE":
+            if dic["x"]:
                 camera_data = motor.CameraData(x=dic["x"], dist=dic["dist"])
             else:
                 camera_data = None
-            dic['motor'] = motor.desired_motor_state_dist(camera_data)
-            motor.set_motor(dic['motor'])
-            dic['motor'] = dic['motor'].name
-            dic.move_to_end('dist', last=False)
-            dic.move_to_end('motor', last=False)
+            if camera_data:
+                last_camera_data = camera_data
+            if args.motor == "DIST":
+                dic["motor"] = motor.desired_motor_state_dist(camera_data)
+            elif args.motor == "XDIST":
+                dic["motor"] = motor.desired_motor_state(
+                    bool(camera_data), last_camera_data
+                )
+            elif args.motor == "RANGEXDIST":
+                dic["echov"], dic["motor"] = motor.desired_motor_state_range(
+                    bool(camera_data), last_camera_data
+                )
+            motor.set_motor(dic["motor"])
+            dic["motor"] = dic["motor"].name
+            dic.move_to_end("dist", last=False)
+            dic.move_to_end("motor", last=False)
         now = perftime("motor", now)
-
 
         pp = (pp + 1) % args.outputcycle
         if not pp:
             print(json.dumps(dic))
-        
-        
+
         cycle = perftime("cycle", cycle)
-        avglog = "avg: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['x'], dic['y'], dic['dist']) if dic['x'] else ''
-        nowlog = "now: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(dic['now']['x'], dic['now']['y'], dic['now']['dist']) if dic['now'] else ''
-        log = "T:{:6.3f}, {:9} | {:36} | {}".format(cycle, dic['motor'], avglog, nowlog)
+        avglog = (
+            "avg: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(
+                dic["x"], dic["y"], dic["dist"]
+            )
+            if dic["x"]
+            else ""
+        )
+        nowlog = (
+            "now: x: {:5.3f}, y: {:5.3f}, dist: {:5.3f}".format(
+                dic["now"]["x"], dic["now"]["y"], dic["now"]["dist"]
+            )
+            if dic["now"]
+            else ""
+        )
+        log = "T:{:6.3f}, {:11} | echov: {:4} | {:36} | {}".format(
+            cycle, dic["motor"], dic["echov"], avglog, nowlog
+        )
         if args.logstderr:
-             eprint(log)
+            eprint(log)
         print(log, file=log2file)
         now = perftime("print", now)
         if not kthread.is_alive():
