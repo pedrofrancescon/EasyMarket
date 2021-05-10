@@ -13,6 +13,10 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
+def clamp(v, ma, mi):
+    return max(mi, min(ma, v))
+
+
 # fmt: off
 class MotorOrders(Enum):
     STOP =        ([1, 0, 0], [0, 0, 0, 0])
@@ -145,8 +149,8 @@ def set_motor(nstate):
 def set_pwms(left, right):
     if not rpi:
         return
-    left_pwm.ChangeDutyCycle(c_left_pwm(left))
-    right_pwm.ChangeDutyCycle(c_right_pwm(right))
+    left_pwm.ChangeDutyCycle(c_left_pwm(clamp(left, 1, 0)))
+    right_pwm.ChangeDutyCycle(c_right_pwm(clamp(right, 1, 0)))
 
 
 class CameraData:
