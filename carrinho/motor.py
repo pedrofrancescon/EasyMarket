@@ -27,8 +27,8 @@ led_pins = [11, 15, 13]
 echo_pins = [16, 18]
 
 
-ECHOV_STOP_DISTANCE = 10
-ECHOV_DODGE_DISTANCE = 20
+ECHOV_STOP_DISTANCE = 16
+ECHOV_DODGE_DISTANCE = 35
 
 
 class XCases(IntEnum):
@@ -62,11 +62,11 @@ class DistCases(IntEnum):
 def dist_to_cases(dist):
     if dist > 0.6:
         return DistCases.TOOCLOSE
-    if dist > 0.44:
+    if dist > 0.27:
         return DistCases.CLOSE
-    if dist > 0.28:
-        return DistCases.OK
     if dist > 0.21:
+        return DistCases.OK
+    if dist > 0.14:
         return DistCases.FAR
     return DistCases.TOOFAR
 
