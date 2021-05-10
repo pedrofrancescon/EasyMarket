@@ -57,7 +57,7 @@ masks = {
         np.array([120, 255, 255], np.uint8),
     ],
     "blue": [
-        np.array([100, 53, 8], np.uint8),
+        np.array([103, 104, 5], np.uint8),
         np.array([120, 255, 255], np.uint8),
     ],
 }
