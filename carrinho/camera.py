@@ -95,6 +95,8 @@ config = dict(
     pwm_left = 100.0, #Left only multiplier
     pwm_right = 100.0,
     pwm_rotate = 100.0,
+    pwm_pro = 400, # /1000
+    pwm_int = 150, # /1000
 )
 
 
