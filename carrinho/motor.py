@@ -82,7 +82,7 @@ class DistCases(IntEnum):
 def dist_to_cases(dist):
     if dist > 0.6: # Ignored
         return DistCases.TOOCLOSE
-    if dist > 0.27:
+    if dist > 0.5:
         return DistCases.CLOSE
     if dist > 0.21:
         return DistCases.OK
@@ -100,7 +100,9 @@ def init_motor_pins():
 
 
 def c_pwm(v, m):
-    return min(config['pwm_min'] + v*(m/100.0)*(config['pwm_mul'])*(100.0-config['pwm_min']), config['pwm_max'])
+    ret = config['pwm_min'] + clamp(v*(m/100.0)*(config['pwm_mul']/100.0), 1, 0)*(config['pwm_max']-config['pwm_min'])
+    eprint(v, m, ret)
+    return ret
 
 
 def c_left_pwm(v):
@@ -172,54 +174,44 @@ def desired_motor_state_dist(current):
         return MotorOrders.STOP
 
 
-def turn_order(last):
-    if last.x == XCases.LEFT:
-        return MotorOrders.TURNLEFT
-    if last.x == XCases.RIGHT:
-        return MotorOrders.TURNRIGHT
+def turn_order(in_sight, last):
     return MotorOrders.FORWARD
 
 
-def rotate_order(last):
+def rotate_order(in_sight, last):
     if last.x == XCases.LEFT:
         return MotorOrders.ROTATELEFT
     if last.x == XCases.RIGHT:
         return MotorOrders.ROTATERIGHT
-    return MotorOrders.STOP
-
-
-def turn_order_pwm(last):
-    if last.x == XCases.LEFT:
-        return MotorOrders.TURNLEFT
-    if last.x == XCases.RIGHT:
-        return MotorOrders.TURNRIGHT
-    return MotorOrders.STOP
-
-
-def rotate_order_pwm(last):
-    if last.x == XCases.LEFT:
-        return MotorOrders.ROTATELEFT
-    if last.x == XCases.RIGHT:
-        return MotorOrders.ROTATERIGHT
-    return MotorOrders.STOP
+    if not in_sight:
+        if last.x == XCases.CLEFT:
+            return MotorOrders.ROTATELEFT
+        if last.x == XCases.CRIGHT:
+            return MotorOrders.ROTATERIGHT
+    return MotorOrders.LOCK
 
 
 def get_turn_pwm(in_sight, last):
     return PWM_FULL
 
 error_int_acc = 0
+previous_error = 0
 
 def get_rotate_pwm(in_sight, last):
     error_pro = abs(last.x_value-0.5)*2.0 if in_sight else 1.0
-    error_int = abs(last.x_value-0.5)-X_TOLERANCE if in_sight else 0.0 # TODO: something
+    error_int = abs(last.x_value-0.5)-X_TOLERANCE if in_sight else 0.1 # TODO: something
     global error_int_acc
+    global previous_error
     error_int_acc += error_int
     error_int_acc = min(error_int_acc, 1.0/(config["pwm_int"]/1000.0)) # Maximum error
     error_int_acc = max(error_int_acc, 0)
     pwm = 0.0
     pwm += error_pro*config["pwm_pro"]/1000.0
     pwm += error_int_acc*config["pwm_int"]/1000.0
+    pwm += previous_error*config["pwm_der"]/1000.0
+    pwm += previous_error*config["pwm_der2"]/1000.0
     pwm *= config["pwm_rotate"]/100.0
+    previous_error = error_pro
     return (pwm, pwm)
 
 
@@ -233,11 +225,11 @@ def desired_motor_state(in_sight, last):
     # Rotate till we find the lost target again or
     # The target is close, don`t move, just turn in its direction
     if (not in_sight) or last.dist <= DistCases.OK:
-        return rotate_order(last)
+        return rotate_order(in_sight, last)
 
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
-        return turn_order(last)
+        return turn_order(in_sight, last)
 
 
 def desired_motor_state_pwm(in_sight, last):
@@ -250,11 +242,11 @@ def desired_motor_state_pwm(in_sight, last):
     # Rotate till we find the lost target again or
     # The target is close, don`t move, just turn in its direction
     if (not in_sight) or last.dist <= DistCases.OK:
-        return rotate_order(last), get_rotate_pwm(in_sight, last)
+        return rotate_order(in_sight, last), get_rotate_pwm(in_sight, last)
 
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
-        return turn_order(last), get_turn_pwm(in_sight, last)
+        return turn_order(in_sight, last), get_turn_pwm(in_sight, last)
 
 
 def desired_motor_state_range(in_sight, last):
@@ -268,16 +260,16 @@ def desired_motor_state_range(in_sight, last):
         return echov, MotorOrders.BACKWARD
 
     if echov <= ECHOV_STOP_DISTANCE:
-        return echov, rotate_order(last)
+        return echov, rotate_order(in_sight, last)
 
     # Rotate till we find the lost target again or
     # The target is close, don`t move, just turn in its direction
     if (not in_sight) or last.dist <= DistCases.OK:
-        return echov, rotate_order(last)
+        return echov, rotate_order(in_sight, last)
 
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
-        lturn_order = turn_order(last)
+        lturn_order = turn_order(in_sight, last)
         if lturn_order == MotorOrders.FORWARD and echov < ECHOV_DODGE_DISTANCE:
             return echov, MotorOrders.TURNLEFT
         else:
