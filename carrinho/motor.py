@@ -46,11 +46,11 @@ class XCases(IntEnum):
 def x_to_cases(x):
     if x < 0.35:
         return XCases.LEFT
-    if x < 0.43:
+    if x < 0.43: # Ignored
         return XCases.CLEFT
     if x < 0.57:
         return XCases.CENTER
-    if x < 0.65:
+    if x < 0.65: # Ignored
         return XCases.CRIGHT
     return XCases.RIGHT
 
@@ -64,13 +64,13 @@ class DistCases(IntEnum):
 
 
 def dist_to_cases(dist):
-    if dist > 0.6:
+    if dist > 0.6: # Ignored
         return DistCases.TOOCLOSE
     if dist > 0.27:
         return DistCases.CLOSE
     if dist > 0.21:
         return DistCases.OK
-    if dist > 0.14:
+    if dist > 0.14: # Ignored
         return DistCases.FAR
     return DistCases.TOOFAR
 
@@ -175,11 +175,11 @@ def desired_motor_state_range(in_sight, last):
 
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
-        turn_order = turn_order(last)
-        if turn_order == MotorOrders.FORWARD and echov < ECHOV_DODGE_DISTANCE:
+        lturn_order = turn_order(last)
+        if lturn_order == MotorOrders.FORWARD and echov < ECHOV_DODGE_DISTANCE:
             return echov, MotorOrders.TURNLEFT
         else:
-            return echov, turn_order
+            return echov, lturn_order
 
 
 """
