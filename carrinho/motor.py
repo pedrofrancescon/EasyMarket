@@ -123,7 +123,7 @@ def turn_order(last):
         return MotorOrders.TURNLEFT
     if last.x == XCases.RIGHT:
         return MotorOrders.TURNRIGHT
-    return MotorOrders.STOP
+    return MotorOrders.FORWARD
 
 
 def rotate_order(last):
