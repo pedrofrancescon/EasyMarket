@@ -433,6 +433,7 @@ def main():
         type=str,
     )
     parser.add_argument("--gui", action="store_true", help="enable gui")
+    parser.add_argument("--led", action="store_true", help="enable leds")
     parser.add_argument("--nopwm", action="store_true", help="disable pwm")
     parser.add_argument(
         "--logstderr", action="store_true", help="write main log to stderr"
@@ -491,8 +492,9 @@ def main():
         motor.config = config
 
         motor.init_motor_pins()
-        motor.init_led_pins()
-        motor.set_motor(motor.MotorOrders.STOP)
+        if args.led:
+            motor.init_led_pins()
+        motor.set_motor(motor.MotorOrders.STOP, args.led)
         if not args.nopwm:
             motor.init_pwm_pins()
         if args.motor == "RANGEXDIST":
@@ -542,7 +544,7 @@ def main():
                     dic["echov"], dic["motor"] = motor.desired_motor_state_range(
                     bool(camera_data), last_camera_data
                 )
-            motor.set_motor(dic["motor"])
+            motor.set_motor(dic["motor"], args.led)
             if not args.nopwm:
                 motor.set_pwms(*dic["PWM"])
             dic["motor"] = dic["motor"].name
