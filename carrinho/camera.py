@@ -89,14 +89,20 @@ config = dict(
     high=masks["blue"][1],
     mutable=None,
     motorOrder=None, # Set to none to free motor controls
-    pwm_min = 42.0, # Minimum PWM value
-    pwm_max = 70.0, # Maximum PWM value
-    pwm_mul = 95.0, # Multipler for PWM
+
+    # Absolute values ( X/100 )
+    pwm_min = 42.0, # Minimum PWM value in all cases
+    pwm_max = 70.0, # Maximum PWM value in all cases
+    pwm_turn_offside = 16.0, # Added to minimum PWM when going FORWARD and not ROTATING
+
+    # Multipliers ( X/100 )
+    pwm_mul = 95.0, # General multiplier
     pwm_left = 100.0, #Left only multiplier
-    pwm_right = 100.0,
-    pwm_rotate = 65.0,
-    pwm_turn = 120.0,
-    pwm_turn_offside = 16.0,
+    pwm_right = 100.0, #Right only multiplier
+    pwm_rotate = 65.0, # Multiplier for rotate PWM
+    pwm_turn = 120.0, # Multiplier for turn PWM
+
+    # PID parameters ( X/1000)
     pwm_pro = 100, # /1000
     pwm_int = 80, # /1000
     pwm_der = 0, # /1000
