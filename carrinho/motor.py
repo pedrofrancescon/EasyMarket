@@ -111,11 +111,11 @@ def c_pwm(v, m):
 
 
 def c_left_pwm(v):
-    return c_pwm(v, config['pwm_left'])
+    return config['pwm_left_abs'] + c_pwm(v, config['pwm_left'])
 
 
 def c_right_pwm(v):
-    return c_pwm(v, config['pwm_right'])
+    return config['pwm_right_abs'] + c_pwm(v, config['pwm_right'])
 
 
 def init_pwm_pins():

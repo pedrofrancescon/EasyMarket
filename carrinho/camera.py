@@ -93,12 +93,18 @@ config = dict(
     # Absolute values ( X/100 )
     pwm_min = 42.0, # Minimum PWM value in all cases
     pwm_max = 70.0, # Maximum PWM value in all cases
-    pwm_turn_offside = 16.0, # Added to minimum PWM when going FORWARD and not ROTATING
+
+    pwm_turn_offside = 16.0, # Added to both PWM sides if in TURN mode
+
+    pwm_left_abs = 0.0,
+    pwm_right_abs = 0.0,
 
     # Multipliers ( X/100 )
     pwm_mul = 95.0, # General multiplier
+
     pwm_left = 100.0, #Left only multiplier
     pwm_right = 100.0, #Right only multiplier
+
     pwm_rotate = 65.0, # Multiplier for rotate PWM
     pwm_turn = 120.0, # Multiplier for turn PWM
 
