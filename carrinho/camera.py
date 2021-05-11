@@ -440,12 +440,13 @@ def main():
     )
     parser.add_argument(
         "--motor",
-        default="XDIST",
+        default="RANGEXDIST",
         help="DIST XDIST RANGEXDIST NONE",
         type=str,
     )
     parser.add_argument("--gui", action="store_true", help="enable gui")
-    parser.add_argument("--pwm", action="store_true", help="enable pwm")
+    parser.add_argument("--led", action="store_true", help="enable leds")
+    parser.add_argument("--nopwm", action="store_true", help="disable pwm")
     parser.add_argument(
         "--logstderr", action="store_true", help="write main log to stderr"
     )
@@ -503,9 +504,10 @@ def main():
         motor.config = config
 
         motor.init_motor_pins()
-        motor.init_led_pins()
-        motor.set_motor(motor.MotorOrders.STOP)
-        if args.pwm:
+        if args.led:
+            motor.init_led_pins()
+        motor.set_motor(motor.MotorOrders.STOP, args.led)
+        if not args.nopwm:
             motor.init_pwm_pins()
         if args.motor == "RANGEXDIST":
             motor.init_echo()
@@ -537,7 +539,7 @@ def main():
             elif args.motor == "DIST":
                 dic["motor"] = motor.desired_motor_state_dist(camera_data)
             elif args.motor == "XDIST":
-                if args.pwm:
+                if not args.nopwm:
                     dic["motor"], dic["PWM"] = motor.desired_motor_state_pwm(
                         bool(camera_data), last_camera_data
                     )
@@ -546,7 +548,7 @@ def main():
                         bool(camera_data), last_camera_data
                     )
             elif args.motor == "RANGEXDIST":
-                if args.pwm:
+                if not args.nopwm:
                     dic["echov"], dic["motor"], dic["PWM"] = motor.desired_motor_state_pwm_range(
                     bool(camera_data), last_camera_data
                 )
@@ -554,8 +556,8 @@ def main():
                     dic["echov"], dic["motor"] = motor.desired_motor_state_range(
                     bool(camera_data), last_camera_data
                 )
-            motor.set_motor(dic["motor"])
-            if args.pwm:
+            motor.set_motor(dic["motor"], args.led)
+            if not args.nopwm:
                 motor.set_pwms(*dic["PWM"])
             dic["motor"] = dic["motor"].name
             dic.move_to_end("dist", last=False)
@@ -582,7 +584,7 @@ def main():
             else ""
         )
         echovlog = " | echov: {:5.{p}{ty}}".format(dic["echov"], p=0 if dic["echov"] >= 1000 else 1, ty="e" if dic["echov"] >= 1000 else "f") if args.motor == "RANGEXDIST" else ""
-        pwmlog = " | PWM: {:.4f} {:.4f}".format(dic["PWM"][0], dic["PWM"][1]) if args.pwm else ""
+        pwmlog = " | PWM: {:.4f} {:.4f}".format(dic["PWM"][0], dic["PWM"][1]) if not args.nopwm else ""
         log = "T:{:6.3f}, {:11}{}{} | {:36} | {}".format(
             cycle, dic["motor"], echovlog, pwmlog, avglog, nowlog
         )

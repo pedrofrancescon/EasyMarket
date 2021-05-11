@@ -146,11 +146,12 @@ def init_echo():
     echo = Echo(echo_pins[0], echo_pins[1])
 
 
-def set_motor(nstate):
+def set_motor(nstate, led):
     if not rpi:
         return
     GPIO.output(motor_pins, nstate.value[1])
-    GPIO.output(led_pins, nstate.value[0])
+    if led:
+        GPIO.output(led_pins, nstate.value[0])
 
 
 def set_pwms(left, right):
