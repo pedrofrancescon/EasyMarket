@@ -77,8 +77,8 @@ config_lock = threading.Lock()
 what = time.time()
 
 config = dict(
-    accLen=2,
-    minWeight=2,
+    accLen=3,
+    minWeight=1,
     minRect=0.7,
     minHull=0.8,
     maxUnsquareness=2,
@@ -89,16 +89,18 @@ config = dict(
     high=masks["blue"][1],
     mutable=None,
     motorOrder=None, # Set to none to free motor controls
-    pwm_min = 37.0, # Minimum PWM value
-    pwm_max = 65.0, # Maximum PWM value
-    pwm_mul = 90.0, # Multipler for PWM
+    pwm_min = 42.0, # Minimum PWM value
+    pwm_max = 70.0, # Maximum PWM value
+    pwm_mul = 95.0, # Multipler for PWM
     pwm_left = 100.0, #Left only multiplier
     pwm_right = 100.0,
-    pwm_rotate = 70.0,
-    pwm_pro = 200, # /1000
-    pwm_int = 50, # /1000
-    pwm_der = 50, # /1000
-    pwm_der2 = 100, # /1000
+    pwm_rotate = 65.0,
+    pwm_turn = 120.0,
+    pwm_turn_offside = 16.0,
+    pwm_pro = 100, # /1000
+    pwm_int = 80, # /1000
+    pwm_der = 0, # /1000
+    pwm_der2 = 400, # /1000
 )
 
 
@@ -569,7 +571,7 @@ def main():
         )
         echovlog = " | echov: {:5.{p}{ty}}".format(dic["echov"], p=0 if dic["echov"] >= 1000 else 1, ty="e" if dic["echov"] >= 1000 else "f") if args.motor == "RANGEXDIST" else ""
         pwmlog = " | PWM: {:.4f} {:.4f}".format(dic["PWM"][0], dic["PWM"][1]) if args.pwm else ""
-        log = "T:{:6.3f}, {:11}{} | {:36} | {}".format(
+        log = "T:{:6.3f}, {:11}{}{} | {:36} | {}".format(
             cycle, dic["motor"], echovlog, pwmlog, avglog, nowlog
         )
         if args.logstderr:

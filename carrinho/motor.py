@@ -45,21 +45,25 @@ pwm_pins = [19, 26]
 PWM_FREQ=100
 PWM_FULL=(1.0, 1.0)
 
-ECHOV_STOP_DISTANCE = 16
-ECHOV_DODGE_DISTANCE = 35
+ECHOV_STOP_DISTANCE = 18
+ECHOV_DODGE_DISTANCE = 18
 
 
 class XCases(IntEnum):
-    LEFT = 0
-    CLEFT = 1
-    CENTER = 2
-    CRIGHT = 3
-    RIGHT = 4
+    FARLEFT = 0
+    LEFT = 1
+    CLEFT = 2 
+    CENTER = 3
+    CRIGHT = 4
+    RIGHT = 5
+    FARRIGHT = 6
 
 
 X_TOLERANCE = 0.15
 
 def x_to_cases(x):
+    if x < 0.15:
+        return XCases.FARLEFT
     if x < 0.50-X_TOLERANCE:
         return XCases.LEFT
     if x < 0.43: # Ignored
@@ -68,7 +72,9 @@ def x_to_cases(x):
         return XCases.CENTER
     if x < 0.50+X_TOLERANCE: 
         return XCases.CRIGHT
-    return XCases.RIGHT
+    if x < 0.85:
+        return XCases.RIGHT
+    return XCases.FARRIGHT
 
 
 class DistCases(IntEnum):
@@ -101,7 +107,6 @@ def init_motor_pins():
 
 def c_pwm(v, m):
     ret = config['pwm_min'] + clamp(v*(m/100.0)*(config['pwm_mul']/100.0), 1, 0)*(config['pwm_max']-config['pwm_min'])
-    eprint(v, m, ret)
     return ret
 
 
@@ -151,8 +156,8 @@ def set_motor(nstate):
 def set_pwms(left, right):
     if not rpi:
         return
-    left_pwm.ChangeDutyCycle(c_left_pwm(clamp(left, 1, 0)))
-    right_pwm.ChangeDutyCycle(c_right_pwm(clamp(right, 1, 0)))
+    left_pwm.ChangeDutyCycle(c_left_pwm(left))
+    right_pwm.ChangeDutyCycle(c_right_pwm(right))
 
 
 class CameraData:
@@ -175,13 +180,19 @@ def desired_motor_state_dist(current):
 
 
 def turn_order(in_sight, last):
+    if last.x == XCases.FARLEFT:
+        return MotorOrders.ROTATELEFT
+    if last.x == XCases.FARRIGHT:
+        return MotorOrders.ROTATERIGHT
     return MotorOrders.FORWARD
 
 
 def rotate_order(in_sight, last):
-    if last.x == XCases.LEFT:
+    if not in_sight:
+        return MotorOrders.LOCK
+    if last.x <= XCases.LEFT:
         return MotorOrders.ROTATELEFT
-    if last.x == XCases.RIGHT:
+    if last.x >= XCases.RIGHT:
         return MotorOrders.ROTATERIGHT
     if not in_sight:
         if last.x == XCases.CLEFT:
@@ -191,28 +202,46 @@ def rotate_order(in_sight, last):
     return MotorOrders.LOCK
 
 
-def get_turn_pwm(in_sight, last):
-    return PWM_FULL
-
 error_int_acc = 0
 previous_error = 0
 
-def get_rotate_pwm(in_sight, last):
-    error_pro = abs(last.x_value-0.5)*2.0 if in_sight else 1.0
-    error_int = abs(last.x_value-0.5)-X_TOLERANCE if in_sight else 0.1 # TODO: something
+
+def get_pwm(in_sight, last):
     global error_int_acc
     global previous_error
+    error_pro = abs(last.x_value-0.5)*2.0 if in_sight else 1.0
+    error_int = abs(last.x_value-0.5)-X_TOLERANCE if in_sight else 1.0 # TODO: something
+    if error_int < 0:
+        error_int_acc = 0
     error_int_acc += error_int
-    error_int_acc = min(error_int_acc, 1.0/(config["pwm_int"]/1000.0)) # Maximum error
+    error_int_acc = min(error_int_acc, 5/(config["pwm_int"]/1000.0)) # Maximum error
     error_int_acc = max(error_int_acc, 0)
     pwm = 0.0
     pwm += error_pro*config["pwm_pro"]/1000.0
     pwm += error_int_acc*config["pwm_int"]/1000.0
     pwm += previous_error*config["pwm_der"]/1000.0
-    pwm += previous_error*config["pwm_der2"]/1000.0
+    pwm += min(0, error_pro-previous_error)*config["pwm_der2"]/1000.0
     pwm *= config["pwm_rotate"]/100.0
     previous_error = error_pro
+    return pwm
+
+
+def get_rotate_pwm(in_sight, last):
+    pwm = get_pwm(in_sight, last)
+    pwm *= config["pwm_rotate"]/100.0
     return (pwm, pwm)
+
+
+def get_turn_pwm(in_sight, last):
+    offside_pwm = config['pwm_turn_offside']/100.0
+    pwm = get_pwm(in_sight, last)
+    pwm *= config["pwm_turn"]/100.0
+    ret = [offside_pwm, offside_pwm]
+    if last.x_value < 0.5:
+        ret[1] += pwm
+    else:
+        ret[0] += pwm
+    return ret
 
 
 def desired_motor_state(in_sight, last):
@@ -286,20 +315,15 @@ def desired_motor_state_pwm_range(in_sight, last):
     if in_sight and last.dist <= DistCases.CLOSE:
         return echov, MotorOrders.BACKWARD, PWM_FULL
 
-    if echov <= ECHOV_STOP_DISTANCE:
-        return echov, rotate_order(last), get_lr_pwm(in_sight, last)
-
     # Rotate till we find the lost target again or
     # The target is close, don`t move, just turn in its direction
-    if (not in_sight) or last.dist <= DistCases.OK:
-        return echov, rotate_order(last), get_lr_pwm(in_sight, last)
+    if echov <= ECHOV_STOP_DISTANCE or (not in_sight) or last.dist <= DistCases.OK:
+        order = rotate_order(in_sight, last)
+        return echov, order, get_rotate_pwm(in_sight, last) if order != MotorOrders.LOCK else PWM_FULL
 
     # Target far enough, go after it
     if last.dist >= DistCases.FAR:
-        turn_order = turn_order(last)
-        if turn_order == MotorOrders.FORWARD and echov < ECHOV_DODGE_DISTANCE:
-            return echov, MotorOrders.TURNLEFT, PWM_FULL
-        else:
-            return echov, turn_order, get_lr_pwm(in_sight, last)
+        order = turn_order(in_sight, last)
+        return echov, order, get_turn_pwm(in_sight, last) if order == MotorOrders.FORWARD else get_rotate_pwm(in_sight, last)
 
 
